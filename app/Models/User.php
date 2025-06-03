@@ -2,45 +2,53 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Filament\Models\Contracts\FilamentUser; // <-- Tambahkan ini
+use Filament\Panel; // <-- Tambahkan ini
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
-use Spatie\Permission\Traits\HasRoles; // <-- Tambahkan ini
+use Spatie\Permission\Traits\HasRoles; // Sudah ada sebelumnya
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class User extends Authenticatable
+class User extends Authenticatable implements FilamentUser // <-- Implementasikan FilamentUser
 {
-    use HasApiTokens, HasFactory, Notifiable, HasRoles; // <-- Tambahkan HasRoles di sini
+    use HasApiTokens, HasFactory, Notifiable, HasRoles;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
     protected $fillable = [
         'name',
         'email',
         'password',
+        'region_id',      // Kolom kustom WGS
+        'wgs_job_title',  // Kolom kustom WGS
+        'wgs_level',      // Kolom kustom WGS
+        'email_verified_at', // Untuk Filament user awal
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
     protected $casts = [
         'email_verified_at' => 'datetime',
-        'password' => 'hashed',
+        'password' => 'hashed', // Pastikan password di-hash otomatis saat di-set
     ];
+
+    // Implementasi method dari FilamentUser
+    public function canAccessPanel(Panel $panel): bool
+    {
+        // Logika untuk menentukan apakah user bisa mengakses panel tertentu.
+        // Untuk sekarang, semua user yang terautentikasi bisa.
+        // Anda bisa menambahkan logika berdasarkan role di sini, misal:
+        // return $this->hasRole(['Tim IT', 'Admin Cabang', 'Kepala Cabang', ...]); 
+        // atau return str_ends_with($this->email, '@wgs.com') && $this->hasVerifiedEmail();
+        return true;
+    }
+
+    // Relasi ke Region
+    public function region(): BelongsTo
+    {
+        return $this->belongsTo(Region::class, 'region_id');
+    }
 }

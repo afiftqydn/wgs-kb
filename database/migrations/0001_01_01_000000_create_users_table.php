@@ -17,23 +17,14 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+
+            // Kolom tambahan untuk WGS
+            $table->foreignId('region_id')->nullable()->constrained('regions')->onDelete('set null'); // Relasi ke tabel regions, bisa null jika Tim IT tidak terikat wilayah tertentu atau jika ada user global lain. onDelete('set null') agar jika region dihapus, user tidak ikut terhapus.
+            $table->string('wgs_job_title')->nullable(); // Menyimpan nama jabatan internal WGS, misal "Kepala Unit Pontianak", "Staf SubUnit Teluk Pakedai". Bisa juga enum jika daftar jabatannya baku.
+            $table->enum('wgs_level', ['CABANG', 'UNIT', 'SUBUNIT', 'GLOBAL'])->nullable(); // Level pengguna berdasarkan struktur organisasi WGS. 'GLOBAL' untuk Tim IT atau peran yang tidak terikat unit/cabang tertentu.
+
             $table->rememberToken();
             $table->timestamps();
-        });
-
-        Schema::create('password_reset_tokens', function (Blueprint $table) {
-            $table->string('email')->primary();
-            $table->string('token');
-            $table->timestamp('created_at')->nullable();
-        });
-
-        Schema::create('sessions', function (Blueprint $table) {
-            $table->string('id')->primary();
-            $table->foreignId('user_id')->nullable()->index();
-            $table->string('ip_address', 45)->nullable();
-            $table->text('user_agent')->nullable();
-            $table->longText('payload');
-            $table->integer('last_activity')->index();
         });
     }
 
@@ -43,7 +34,5 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('users');
-        Schema::dropIfExists('password_reset_tokens');
-        Schema::dropIfExists('sessions');
     }
 };
