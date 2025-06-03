@@ -19,6 +19,8 @@ class DatabaseSeeder extends Seeder
             RolePermissionSeeder::class,
             UserSeeder::class,
             ReferrerSeeder::class,
+            CustomerSeeder::class,
+            LoanApplicationSeeder::class,
         ]);
     }
 }
