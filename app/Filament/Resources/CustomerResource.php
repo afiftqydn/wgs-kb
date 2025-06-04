@@ -27,72 +27,72 @@ class CustomerResource extends Resource
     public static function form(Form $form): Form
     {
         return $form
-            ->schema([
-                Forms\Components\Section::make('Informasi Pribadi Nasabah')
-                    ->schema([
-                        Forms\Components\TextInput::make('nik')
-                            ->label('NIK')
-                            ->maxLength(255)
-                            ->unique(Customer::class, 'nik', ignoreRecord: true)
-                            ->nullable(),
-                        Forms\Components\TextInput::make('name')
-                            ->label('Nama Lengkap Nasabah')
-                            ->required()
-                            ->maxLength(255),
-                        Forms\Components\TextInput::make('phone')
-                            ->label('Nomor Telepon')
-                            ->tel()
-                            ->maxLength(255)
-                            ->nullable(),
-                        Forms\Components\TextInput::make('email')
-                            ->label('Alamat Email')
-                            ->email()
-                            ->maxLength(255)
-                            ->unique(Customer::class, 'email', ignoreRecord: true)
-                            ->nullable(),
-                        Forms\Components\Textarea::make('address')
-                            ->label('Alamat Lengkap')
-                            ->columnSpanFull()
-                            ->nullable(),
-                        Forms\Components\Select::make('region_id')
-                            ->label('Wilayah Domisili Nasabah')
-                            ->relationship('region', 'name')
-                            ->searchable()
-                            ->preload()
-                            ->nullable(), // Sesuai dokumen, region_id bisa opsional [cite: 35]
-                    ])->columns(2),
-
-                Forms\Components\Section::make('Informasi Referral (Jika Ada)')
-                    ->schema([
-                        Forms\Components\Select::make('referrer_id')
-                            ->label('Pihak Pemberi Referral')
-                            ->relationship('referrer', 'name') // Menampilkan nama referrer
-                            ->searchable()
-                            ->preload()
-                            ->live() // Membuat field ini reaktif
-                            ->afterStateUpdated(function (Set $set, ?string $state) {
-                                // Otomatis isi referral_code_used jika referrer dipilih
-                                if ($state) {
-                                    $referrer = Referrer::find($state);
-                                    if ($referrer) {
-                                        $set('referral_code_used', $referrer->generated_referral_code);
-                                    }
-                                } else {
-                                    $set('referral_code_used', null);
-                                }
-                            })
-                            ->nullable(),
-                        Forms\Components\TextInput::make('referral_code_used')
-                            ->label('Kode Referral yang Digunakan')
-                            ->maxLength(255)
-                            ->helperText('Akan terisi otomatis jika "Pihak Pemberi Referral" dipilih, atau bisa diisi manual.')
-                            ->nullable(),
-                    ])->columns(2),
-
-                // created_by akan diisi otomatis
-            ]);
+            ->schema(self::getCreationFormSchema()); // Panggil method baru di sini
     }
+    // TAMBAHKAN METHOD BARU INI:
+    public static function getCreationFormSchema(): array
+    {
+        return [
+            Forms\Components\Section::make('Informasi Pribadi Nasabah')
+                ->schema([
+                    Forms\Components\TextInput::make('nik')
+                        ->label('NIK')
+                        ->maxLength(255)
+                        ->unique(Customer::class, 'nik', ignoreRecord: true)
+                        ->nullable(),
+                    Forms\Components\TextInput::make('name')
+                        ->label('Nama Lengkap Nasabah')
+                        ->required()
+                        ->maxLength(255),
+                    Forms\Components\TextInput::make('phone')
+                        ->label('Nomor Telepon')
+                        ->tel()
+                        ->maxLength(255)
+                        ->nullable(),
+                    Forms\Components\TextInput::make('email')
+                        ->label('Alamat Email')
+                        ->email()
+                        ->maxLength(255)
+                        ->unique(Customer::class, 'email', ignoreRecord: true)
+                        ->nullable(),
+                    Forms\Components\Textarea::make('address')
+                        ->label('Alamat Lengkap')
+                        ->columnSpanFull()
+                        ->nullable(),
+                    Forms\Components\Select::make('region_id')
+                        ->label('Wilayah Domisili Nasabah')
+                        ->relationship('region', 'name')
+                        ->searchable()
+                        ->preload()
+                        ->nullable(),
+                ])->columns(2),
 
+            Forms\Components\Section::make('Informasi Referral (Jika Ada)')
+                ->schema([
+                    Forms\Components\Select::make('referrer_id')
+                        // ... (konfigurasi referrer_id seperti sebelumnya)
+                        ->relationship('referrer', 'name')
+                        ->searchable()
+                        ->preload()
+                        ->live()
+                        ->afterStateUpdated(function (Forms\Set $set, ?string $state) {
+                            if ($state) {
+                                $referrer = Referrer::find($state);
+                                if ($referrer) {
+                                    $set('referral_code_used', $referrer->generated_referral_code);
+                                }
+                            } else {
+                                $set('referral_code_used', null);
+                            }
+                        })
+                        ->nullable(),
+                    Forms\Components\TextInput::make('referral_code_used')
+                        // ... (konfigurasi referral_code_used seperti sebelumnya)
+                        ->nullable(),
+                ])->columns(2),
+            // Kolom created_by tidak perlu ada di form ini karena diisi otomatis oleh model event
+        ];
+    }
     public static function table(Table $table): Table
     {
         return $table
