@@ -7,11 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Auth;
+use Spatie\Activitylog\Traits\LogsActivity; // <-- Import Trait
+use Spatie\Activitylog\LogOptions;          // <-- Import LogOptions
 use App\Notifications\ApplicationAssignedNotification; // Pastikan ini diimport
 
 class LoanApplication extends Model
 {
-    use HasFactory;
+    use HasFactory, LogsActivity;
 
     protected $fillable = [
         'application_number',
@@ -29,6 +31,24 @@ class LoanApplication extends Model
     protected $casts = [
         'amount_requested' => 'decimal:2',
     ];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly([ // Hanya catat atribut ini
+                'application_number', 
+                'customer_id', 
+                'product_type_id', 
+                'amount_requested', 
+                'status', 
+                'assigned_to'
+            ])
+            ->logOnlyDirty() // Hanya catat jika atribut yang dilog benar-benar berubah (untuk update)
+            ->dontSubmitEmptyLogs() // Jangan buat log jika tidak ada yang berubah atau tidak ada atribut yang dilog
+            ->setDescriptionForEvent(fn(string $eventName) => "Permohonan dengan nomor '{$this->application_number}' telah {$eventName}") // Deskripsi log
+            ->useLogName('LoanApplication'); // Nama log kustom
+    }
+
 
     /**
      * Properti virtual untuk menyimpan catatan workflow sementara sebelum disimpan.

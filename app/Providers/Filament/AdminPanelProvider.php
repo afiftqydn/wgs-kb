@@ -2,21 +2,25 @@
 
 namespace App\Providers\Filament;
 
-use Filament\Http\Middleware\Authenticate;
-use Filament\Http\Middleware\AuthenticateSession;
-use Filament\Http\Middleware\DisableBladeIconComponents;
-use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Pages;
 use Filament\Panel;
+use Filament\Widgets;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
-use Filament\Widgets;
-use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
-use Illuminate\Cookie\Middleware\EncryptCookies;
-use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
-use Illuminate\Routing\Middleware\SubstituteBindings;
+use Filament\Http\Middleware\Authenticate;
 use Illuminate\Session\Middleware\StartSession;
+use Illuminate\Cookie\Middleware\EncryptCookies;
+use Filament\Http\Middleware\AuthenticateSession;
+use Illuminate\Routing\Middleware\SubstituteBindings;
+use App\Filament\Widgets\RecentLoanApplicationsWidget;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Filament\Http\Middleware\DisableBladeIconComponents;
+use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
+use App\Filament\Pages\Auth\LoginPage as AppCustomLoginPage;
+use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
+use App\Filament\Widgets\LoanApplicationStatsOverview; // Import widget
+
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -26,10 +30,33 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
-            ->login()
+            ->login(AppCustomLoginPage::class) // <-- PASTIKAN MENGGUNAKAN KELAS YANG BENAR
             ->colors([
-                'primary' => Color::Amber,
+                'primary' => [
+                    50 =>  '#f2fbf3',  
+                    100 => '#e1f7e2',
+                    200 => '#c4eec8',
+                    300 => '#95e09c',
+                    400 => '#5fc96a',
+                    500 => '#39ae45',
+                    600 => '#2a8f34',
+                    700 => '#24712d',
+                    800 => '#215a28',
+                    900 => '#1d4a23',
+                    950 => '#0b280f',
+                ],
+                // Anda bisa juga mengatur warna lain jika perlu:
+                'danger' => Color::Red, // Atau palet kustom untuk danger
+                'gray' => Color::Slate,
+                'info' => Color::Sky,
+                'success' => Color::Green,
+                'warning' => Color::Orange,
             ])
+            // ---------------------------------
+
+            ->brandLogo(fn () => view('filament.shared.custom_brand')) 
+
+
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([
@@ -37,8 +64,10 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
-                Widgets\AccountWidget::class,
-                Widgets\FilamentInfoWidget::class,
+                // Widgets\FilamentInfoWidget::class,
+                LoanApplicationStatsOverview::class,
+                // Widgets\AccountWidget::class,
+                RecentLoanApplicationsWidget::class, // <-- DAFTARKAN WIDGET BARU ANDA
             ])
             ->middleware([
                 EncryptCookies::class,
