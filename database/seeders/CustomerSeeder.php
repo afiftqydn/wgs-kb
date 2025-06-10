@@ -6,79 +6,74 @@ use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Carbon;
-use App\Models\User; // Untuk mengambil user created_by
-use App\Models\Region; // Untuk mengambil region_id
-use App\Models\Referrer; // Untuk mengambil referrer_id
+use App\Models\User;
+use App\Models\Region;
+use App\Models\Referrer;
+use App\Models\Customer; // Gunakan model
 
 class CustomerSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        // Ambil contoh data untuk relasi
-        $adminSubUnitUser = User::where('email', 'admin.subunit.ptkkota@wgs.com')->first(); // User contoh dari UserSeeder
-        $regionSubUnitPtkKota = Region::where('code', 'PNK01-PK')->first(); // Region contoh dari RegionSeeder
+        $adminSubUnitUser = User::where('email', 'admin.subunit.ptkkota@wgs.com')->first();
+        $regionSubUnitPtkKota = Region::where('code', 'PNK01-PK')->first();
+        
+        // Ambil referrer berdasarkan kode yang di-generate (jika ReferrerSeeder sudah jalan)
+        // Atau buat contoh referrer sederhana di sini jika perlu
+        $referrerBudi = Referrer::where('generated_referral_code', 'like', '%MKT001CB%')->first(); // Sesuaikan pencarian
+        $referrerOrmas = Referrer::where('generated_referral_code', 'like', '%ORM001PNK%')->first(); // Sesuaikan pencarian
 
-        $referrerBudi = Referrer::where('generated_referral_code', 'like', 'MRKT-KB00%')->first(); // Referrer contoh
-        $referrerOrmas = Referrer::where('generated_referral_code', 'like', 'ORMS-PNK01%')->first(); // Referrer contoh lain
-
-        $customers = [];
-
-        // Nasabah 1 (dengan referrer)
-        if ($adminSubUnitUser && $regionSubUnitPtkKota && $referrerBudi) {
-            $customers[] = [
-                'nik' => '3270011203900001', // Contoh NIK
+        if (!$adminSubUnitUser || !$regionSubUnitPtkKota ) {
+             $this->command->warn('Data Admin SubUnit atau Region SubUnit contoh tidak ditemukan. CustomerSeeder mungkin tidak berjalan maksimal.');
+             // Tidak perlu return, karena referrer bisa null
+        }
+        
+        Customer::firstOrCreate(
+            ['nik' => '3270011203900001'],
+            [
                 'name' => 'Ahmad Subagja',
                 'phone' => '081200010001',
                 'email' => 'ahmad.subagja@example.com',
                 'address' => 'Jl. Merdeka No. 1, Pontianak Kota',
-                'region_id' => $regionSubUnitPtkKota->id,
-                'created_by' => $adminSubUnitUser->id,
-                'referrer_id' => $referrerBudi->id,
-                'referral_code_used' => $referrerBudi->generated_referral_code,
+                'region_id' => $regionSubUnitPtkKota ? $regionSubUnitPtkKota->id : null,
+                'created_by' => $adminSubUnitUser ? $adminSubUnitUser->id : null,
+                'referrer_id' => $referrerBudi ? $referrerBudi->id : null,
+                'referral_code_used' => $referrerBudi ? $referrerBudi->generated_referral_code : null,
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
-            ];
-        }
-
-        // Nasabah 2 (dengan referrer lain)
-        if ($adminSubUnitUser && $regionSubUnitPtkKota && $referrerOrmas) {
-            $customers[] = [
-                'nik' => '3270011203900002', // Contoh NIK
+            ]
+        );
+        Customer::firstOrCreate(
+            ['nik' => '3270011203900002'],
+            [
                 'name' => 'Siti Zulaikha',
                 'phone' => '081200010002',
                 'email' => 'siti.zulaikha@example.com',
                 'address' => 'Jl. Pahlawan No. 2, Pontianak Kota',
-                'region_id' => $regionSubUnitPtkKota->id,
-                'created_by' => $adminSubUnitUser->id,
-                'referrer_id' => $referrerOrmas->id,
-                'referral_code_used' => $referrerOrmas->generated_referral_code,
+                'region_id' => $regionSubUnitPtkKota ? $regionSubUnitPtkKota->id : null,
+                'created_by' => $adminSubUnitUser ? $adminSubUnitUser->id : null,
+                'referrer_id' => $referrerOrmas ? $referrerOrmas->id : null,
+                'referral_code_used' => $referrerOrmas ? $referrerOrmas->generated_referral_code : null,
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
-            ];
-        }
-
-        // Nasabah 3 (tanpa referrer)
-        if ($adminSubUnitUser && $regionSubUnitPtkKota) {
-            $customers[] = [
-                'nik' => '3270011203900003', // Contoh NIK
+            ]
+        );
+        Customer::firstOrCreate(
+            ['nik' => '3270011203900003'],
+            [
                 'name' => 'Bambang Pamungkas',
                 'phone' => '081200010003',
                 'email' => 'bambang.p@example.com',
                 'address' => 'Jl. Reformasi No. 3, Pontianak Kota',
-                'region_id' => $regionSubUnitPtkKota->id,
-                'created_by' => $adminSubUnitUser->id,
+                'region_id' => $regionSubUnitPtkKota ? $regionSubUnitPtkKota->id : null,
+                'created_by' => $adminSubUnitUser ? $adminSubUnitUser->id : null,
                 'referrer_id' => null,
                 'referral_code_used' => null,
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
-            ];
-        }
+            ]
+        );
 
-        if (!empty($customers)) {
-            DB::table('customers')->insert($customers);
-        }
+        $this->command->info('CustomerSeeder berhasil dijalankan.');
     }
 }

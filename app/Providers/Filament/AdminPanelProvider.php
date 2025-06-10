@@ -28,6 +28,7 @@ class AdminPanelProvider extends PanelProvider
     {
         return $panel
             ->default()
+            ->sidebarFullyCollapsibleOnDesktop()
             ->id('admin')
             ->path('admin')
             ->login(AppCustomLoginPage::class) // <-- PASTIKAN MENGGUNAKAN KELAS YANG BENAR

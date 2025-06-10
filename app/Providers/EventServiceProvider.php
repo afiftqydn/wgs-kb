@@ -37,7 +37,9 @@ class EventServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        parent::boot(); // Panggil boot parent jika ada
+
+        PomigorStockMovement::observe(PomigorStockMovementObserver::class); // Daftarkan observer
     }
 
     /**
