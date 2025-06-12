@@ -307,7 +307,7 @@ class LoanApplicationResource extends Resource
                     ->openUrlInNewTab() // Buka PDF di tab baru
                     ->visible(fn (LoanApplication $record): bool => in_array($record->status, ['APPROVED', 'REJECTED'])), // Hanya tampil jika sudah disetujui/ditolak
 
-                Tables\Actions\DeleteAction::make()->visible(fn (LoanApplication $record) => $record->status === 'DRAFT' /* ... */),
+                // Tables\Actions\DeleteAction::make()->visible(fn (LoanApplication $record) => $record->status === 'DRAFT' /* ... */),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

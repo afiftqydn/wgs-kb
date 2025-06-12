@@ -19,7 +19,7 @@ use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use App\Filament\Pages\Auth\LoginPage as AppCustomLoginPage;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
-use App\Filament\Widgets\LoanApplicationStatsOverview; // Import widget
+use App\Filament\Widgets\LoanApplicationStatsOverview; 
 
 
 class AdminPanelProvider extends PanelProvider
@@ -28,10 +28,10 @@ class AdminPanelProvider extends PanelProvider
     {
         return $panel
             ->default()
-            ->sidebarFullyCollapsibleOnDesktop()
             ->id('admin')
+            ->sidebarCollapsibleOnDesktop()
             ->path('admin')
-            ->login(AppCustomLoginPage::class) // <-- PASTIKAN MENGGUNAKAN KELAS YANG BENAR
+            ->login(AppCustomLoginPage::class) 
             ->colors([
                 'primary' => [
                     50 =>  '#f2fbf3',  

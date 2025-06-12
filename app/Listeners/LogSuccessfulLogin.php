@@ -3,8 +3,8 @@
 namespace App\Listeners;
 
 use Illuminate\Auth\Events\Login;
-use Illuminate\Contracts\Queue\ShouldQueue; // <-- TAMBAHKAN INI
-use Illuminate\Queue\InteractsWithQueue;   // <-- TAMBAHKAN INI
+use Illuminate\Contracts\Queue\ShouldQueue; 
+use Illuminate\Queue\InteractsWithQueue;   
 use Spatie\Activitylog\Facades\Activity;
 use App\Models\User;
 
