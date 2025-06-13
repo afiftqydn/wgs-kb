@@ -27,6 +27,7 @@ class UserSeeder extends Seeder
         $unitPontianak = Region::where('code', 'PNK01')->first();
         $subunitPtkKota = Region::where('code', 'PNK01-PK')->first();
         $unitKubuRaya = Region::where('code', 'KRY01')->first();
+        $subunitSry = Region::where('code', 'KRY01-SRY')->first();
 
         // Global User
         if ($roleTimIT) User::firstOrCreate(['email' => 'it@wgs.com'], ['name' => 'Tim IT WGS', 'password' => Hash::make('password123'), 'region_id' => null, 'wgs_job_title' => 'Staf IT', 'wgs_level' => 'GLOBAL', 'email_verified_at' => now()])->assignRole($roleTimIT);
@@ -55,12 +56,71 @@ class UserSeeder extends Seeder
         if ($roleKepalaUnit && $unitPontianak) User::firstOrCreate(['email' => 'kaunit.pontianak@wgs.com'],['name' => 'Kepala Unit Pontianak', 'password' => Hash::make('password123'), 'region_id' => $unitPontianak->id, 'wgs_job_title' => 'Kepala Unit Pontianak', 'wgs_level' => 'UNIT', 'email_verified_at' => now()])->assignRole($roleKepalaUnit);
         
         // Unit Kubu Raya User
-        if ($roleAdminUnit && $unitKubuRaya) User::firstOrCreate(['email' => 'admin.kuburaya@wgs.com'], ['name' => 'Admin Unit Kubu Raya', 'password' => Hash::make('password123'), 'region_id' => $unitKubuRaya->id, 'wgs_job_title' => 'Admin Unit Kubu Raya', 'wgs_level' => 'UNIT', 'email_verified_at' => now()])->assignRole($roleAdminUnit);
+        // 1. Admin Unit Kubu Raya
+        if ($roleAdminUnit && $unitKubuRaya) {
+            User::firstOrCreate(
+                ['email' => 'admin.kuburaya@wgs.com'],
+                [
+                    'name' => 'Admin Unit Kubu Raya',
+                    'password' => Hash::make('password123'),
+                    'region_id' => $unitKubuRaya->id,
+                    'wgs_job_title' => 'Admin Unit Kubu Raya',
+                    'wgs_level' => 'UNIT',
+                    'email_verified_at' => now(),
+                ]
+            )->assignRole($roleAdminUnit);
+        }
+
+        // 2. Analis Unit Kubu Raya
+        if ($roleAnalisUnit && $unitKubuRaya) {
+            User::firstOrCreate(
+                ['email' => 'analis.kuburaya@wgs.com'],
+                [
+                    'name' => 'Analis Unit Kubu Raya',
+                    'password' => Hash::make('password123'),
+                    'region_id' => $unitKubuRaya->id,
+                    'wgs_job_title' => 'Analis Unit Kubu Raya',
+                    'wgs_level' => 'UNIT',
+                    'email_verified_at' => now(),
+                ]
+            )->assignRole($roleAnalisUnit);
+        }
+        
+        // 3. Kepala Unit Kubu Raya
+        if ($roleKepalaUnit && $unitKubuRaya) {
+            User::firstOrCreate(
+                ['email' => 'kaunit.kuburaya@wgs.com'],
+                [
+                    'name' => 'Kepala Unit Kubu Raya',
+                    'password' => Hash::make('password123'),
+                    'region_id' => $unitKubuRaya->id,
+                    'wgs_job_title' => 'Kepala Unit Kubu Raya',
+                    'wgs_level' => 'UNIT',
+                    'email_verified_at' => now(),
+                ]
+            )->assignRole($roleKepalaUnit);
+        }
 
         // SubUnit Pontianak Kota Users
         if ($roleAdminSubUnit && $subunitPtkKota) User::firstOrCreate(['email' => 'admin.subunit.ptkkota@wgs.com'],['name' => 'Admin SubUnit Ptk Kota', 'password' => Hash::make('password123'), 'region_id' => $subunitPtkKota->id, 'wgs_job_title' => 'Admin SubUnit Pontianak Kota', 'wgs_level' => 'SUBUNIT', 'email_verified_at' => now()])->assignRole($roleAdminSubUnit);
         if ($roleKepalaSubUnit && $subunitPtkKota) User::firstOrCreate(['email' => 'kasubunit.ptkkota@wgs.com'],['name' => 'Kepala SubUnit Ptk Kota', 'password' => Hash::make('password123'), 'region_id' => $subunitPtkKota->id, 'wgs_job_title' => 'Kepala SubUnit Pontianak Kota', 'wgs_level' => 'SUBUNIT', 'email_verified_at' => now()])->assignRole($roleKepalaSubUnit);
         
+        // 4. Admin SubUnit Sungai Raya (di bawah Unit Kubu Raya)
+        if ($roleAdminSubUnit && $subunitSry) {
+            User::firstOrCreate(
+                ['email' => 'admin.subunit.sry@wgs.com'],
+                [
+                    'name' => 'Admin SubUnit Sungai Raya',
+                    'password' => Hash::make('password123'),
+                    'region_id' => $subunitSry->id,
+                    'wgs_job_title' => 'Admin SubUnit Sungai Raya',
+                    'wgs_level' => 'SUBUNIT',
+                    'email_verified_at' => now(),
+                ]
+            )->assignRole($roleAdminSubUnit);
+        }
+
+
         $this->command->info('UserSeeder berhasil dijalankan.');
     }
 }

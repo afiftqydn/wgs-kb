@@ -80,6 +80,30 @@ class LoanApplicationSeeder extends Seeder
             );
         }
 
+
+        // --- DATA LOAN APPLICATION BARU UNTUK UJI WILAYAH KUBU RAYA ---
+        $customerKubuRaya = Customer::where('nik', '3210987654321004')->first();
+        $creatorKubuRaya = User::where('email', 'admin.subunit.sry@wgs.com')->first();
+        $productKUR = ProductType::where('name', 'Kredit Usaha Rakyat (KUR)')->first();
+
+        if ($customerKubuRaya && $creatorKubuRaya && $productKUR) {
+            LoanApplication::firstOrCreate(
+                ['application_number' => 'UAT-SUBMITTED-KR-001'],
+                [
+                    'customer_id' => $customerKubuRaya->id,
+                    'product_type_id' => $productKUR->id,
+                    'amount_requested' => 25000000.00,
+                    'purpose' => 'Pengembangan usaha laundry di Kubu Raya',
+                    'input_region_id' => $creatorKubuRaya->region_id, // Ambil region dari user pembuat (SubUnit Sungai Raya)
+                    'status' => 'SUBMITTED',
+                    'created_by' => $creatorKubuRaya->id,
+                    // assigned_to akan diisi otomatis ke Admin Unit Kubu Raya oleh model event
+                ]
+            );
+        }
+        // -------------------------------------------------------------
+
+
         $this->command->info('LoanApplicationSeeder berhasil dijalankan.');
     }
 }

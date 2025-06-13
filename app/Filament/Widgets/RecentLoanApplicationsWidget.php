@@ -9,6 +9,7 @@ use App\Models\LoanApplication; // Import model LoanApplication
 use App\Filament\Resources\LoanApplicationResource; // Untuk URL aksi
 use Illuminate\Database\Eloquent\Builder; // Untuk type hinting query
 use Illuminate\Support\Facades\Auth; // Untuk mendapatkan user yang login
+use App\Models\Region;
 
 class RecentLoanApplicationsWidget extends BaseWidget
 {
@@ -23,19 +24,43 @@ class RecentLoanApplicationsWidget extends BaseWidget
 
     protected function getTableQuery(): Builder
     {
-        // Ambil permohonan yang relevan. Contoh:
-        // 1. 5 permohonan terbaru dengan status SUBMITTED atau UNDER_REVIEW
-        return LoanApplication::query()
-            ->whereIn('status', ['SUBMITTED', 'UNDER_REVIEW'])
-            ->latest() // Urutkan berdasarkan terbaru
-            ->limit(5);
+        $user = Auth::user();
+        
+        // Mulai dengan query dasar
+        $query = LoanApplication::query();
 
-        // // 2. Atau, permohonan yang ditugaskan kepada pengguna yang login
-        // $user = Auth::user();
-        // return LoanApplication::query()
-        //     ->where('assigned_to', $user->id)
-        //     ->whereIn('status', ['SUBMITTED', 'UNDER_REVIEW', 'ESCALATED']) // Status yang memerlukan aksi
-        //     ->orderBy('updated_at', 'desc'); // Urutkan berdasarkan kapan terakhir diupdate
+        // --- Terapkan Logika Batasan Wilayah ---
+
+        // 1. Untuk peran level UNIT
+        if ($user->hasAnyRole(['Kepala Unit', 'Analis Unit', 'Admin Unit'])) {
+            if ($user->region_id) {
+                $childSubUnitIds = Region::where('parent_id', $user->region_id)->pluck('id');
+                $accessibleRegionIds = $childSubUnitIds->push($user->region_id);
+                $query->whereIn('input_region_id', $accessibleRegionIds);
+            } else {
+                // Jika user UNIT tidak punya region_id, jangan tampilkan apa-apa
+                $query->whereRaw('1 = 0');
+            }
+        }
+        // 2. Untuk peran level SUBUNIT
+        elseif ($user->hasAnyRole(['Kepala SubUnit', 'Admin SubUnit'])) {
+            if ($user->region_id) {
+                $query->where('input_region_id', $user->region_id);
+            } else {
+                $query->whereRaw('1 = 0');
+            }
+        }
+        // 3. Untuk peran global seperti Tim IT, Kepala Cabang, dll., jangan terapkan filter wilayah
+        // jadi $query akan mengambil semua data.
+
+        // --- Tambahkan Filter Spesifik Widget ---
+        // Setelah difilter berdasarkan wilayah, filter lagi untuk menampilkan tugas yang relevan
+        // Contoh: menampilkan permohonan yang ditugaskan ke user saat ini
+        $query->where('assigned_to', $user->id)
+              ->whereIn('status', ['SUBMITTED', 'UNDER_REVIEW', 'ESCALATED', 'APPROVED', 'REJECTED']) // Tampilkan juga yang perlu direview
+              ->orderBy('updated_at', 'desc');
+
+        return $query;
     }
 
     protected function getTableColumns(): array

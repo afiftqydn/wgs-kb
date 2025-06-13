@@ -321,7 +321,49 @@ class LoanApplicationResource extends Resource
     
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->with(['customer', 'productType', 'creator', 'assignee', 'inputRegion']);
+        $user = Auth::user();
+
+        // 1. Jika pengguna adalah Tim IT, Kepala Cabang, atau peran global lainnya, tampilkan semua data.
+        if ($user->hasRole(['Tim IT', 'Kepala Cabang', 'Analis Cabang', 'Admin Cabang'])) {
+            // Jangan terapkan filter apa pun, kembalikan query asli dengan eager loading
+            return parent::getEloquentQuery()->with(['customer', 'productType', 'creator', 'assignee', 'inputRegion']);
+        }
+
+        // 2. Jika pengguna berada di level UNIT (Kepala Unit, Analis Unit, Admin Unit)
+        if ($user->hasAnyRole(['Kepala Unit', 'Analis Unit', 'Admin Unit'])) {
+            if ($user->region_id) {
+                // Ambil ID dari semua SubUnit yang berada di bawah Unit pengguna ini
+                $childSubUnitIds = Region::where('parent_id', $user->region_id)->pluck('id');
+
+                // Gabungkan ID Unit pengguna dengan ID semua SubUnit di bawahnya
+                $accessibleRegionIds = $childSubUnitIds->push($user->region_id);
+
+                // Tampilkan permohonan yang input_region_id-nya ada di dalam daftar wilayah yang bisa diakses
+                return parent::getEloquentQuery()
+                    ->whereIn('input_region_id', $accessibleRegionIds)
+                    ->with(['customer', 'productType', 'creator', 'assignee', 'inputRegion']);
+            }
+        }
+
+        // 3. Jika pengguna berada di level SUBUNIT (Kepala SubUnit, Admin SubUnit)
+        if ($user->hasAnyRole(['Kepala SubUnit', 'Admin SubUnit'])) {
+            if ($user->region_id) {
+                // Hanya tampilkan permohonan yang input_region_id-nya sama dengan region_id pengguna
+                return parent::getEloquentQuery()
+                    ->where('input_region_id', $user->region_id)
+                    ->with(['customer', 'productType', 'creator', 'assignee', 'inputRegion']);
+            }
+        }
+
+        // 4. Jika pengguna adalah Manager Keuangan (contoh peran global lain)
+        // Anda bisa memutuskan apakah mereka bisa melihat semua atau tidak sama sekali.
+        // if ($user->hasRole('Manager Keuangan')) {
+        //     return parent::getEloquentQuery()->with([...]); // Contoh jika bisa lihat semua
+        // }
+
+        // 5. Fallback: Jika peran tidak cocok dengan kondisi di atas, jangan tampilkan apa pun
+        // Ini lebih aman daripada menampilkan semua data secara tidak sengaja.
+        return parent::getEloquentQuery()->whereRaw('1 = 0'); // Query yang selalu mengembalikan hasil kosong
     }
 
     public static function getRelations(): array

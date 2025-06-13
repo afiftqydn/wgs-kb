@@ -21,14 +21,14 @@ class LoginPage extends BaseLogin
      * Menampilkan heading pada halaman login.
      * Anda bisa kosongkan atau ganti teksnya sesuai kebutuhan.
      */
-    // public function getHeading(): string | Htmlable
-    // {
-    //     // Kosongkan heading
-    //     return '';
+    public function getHeading(): string | Htmlable
+    {
+        // Kosongkan heading
+        return "Assalamu'alaikum Wr.Wb";
 
-    //     // Atau ubah teks heading seperti contoh berikut:
-    //     // return 'Selamat Datang di Aplikasi WGS';
-    // }
+        // Atau ubah teks heading seperti contoh berikut:
+        // return 'Selamat Datang di Aplikasi WGS';
+    }
 
     public function getSubheading(): string | Htmlable | null
 {

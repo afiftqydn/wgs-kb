@@ -2,19 +2,20 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\CustomerResource\Pages;
-// use App\Filament\Resources\CustomerResource\RelationManagers;
-use App\Models\Customer;
-use App\Models\Region;
-use App\Models\Referrer; // Import Referrer model
-use App\Models\User;    // Import User model (untuk created_by)
 use Filament\Forms;
-use Filament\Forms\Form;
-use Filament\Resources\Resource;
+// use App\Filament\Resources\CustomerResource\RelationManagers;
 use Filament\Tables;
+use App\Models\Region;
+use App\Models\Customer;
+use Filament\Forms\Form;
 use Filament\Tables\Table;
+use Filament\Resources\Resource;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Builder;
+use App\Models\Referrer; // Import Referrer model
+use App\Filament\Resources\CustomerResource\Pages;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use App\Models\User;    // Import User model (untuk created_by)
 use Filament\Forms\Set; // Untuk mengisi field lain secara otomatis
 
 class CustomerResource extends Resource
@@ -150,10 +151,45 @@ class CustomerResource extends Resource
             ]);
     }
 
-    // Method untuk mengisi created_by secara otomatis
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->with(['region', 'creator', 'referrer']);
+        $user = Auth::user();
+
+        // 1. Jika pengguna adalah peran global (Cabang atau Tim IT), tampilkan semua nasabah.
+        if ($user->hasRole(['Tim IT', 'Kepala Cabang', 'Analis Cabang', 'Admin Cabang'])) {
+            // Kembalikan query asli dengan eager loading
+            return parent::getEloquentQuery()->with(['region', 'creator', 'referrer']);
+        }
+
+        // 2. Jika pengguna berada di level UNIT (Kepala Unit, Analis Unit, Admin Unit)
+        if ($user->hasAnyRole(['Kepala Unit', 'Analis Unit', 'Admin Unit'])) {
+            if ($user->region_id) {
+                // Ambil ID dari semua SubUnit yang berada di bawah Unit pengguna ini
+                $childSubUnitIds = Region::where('parent_id', $user->region_id)->pluck('id');
+                
+                // Gabungkan ID Unit pengguna dengan ID semua SubUnit di bawahnya
+                $accessibleRegionIds = $childSubUnitIds->push($user->region_id);
+
+                // Tampilkan nasabah yang region_id (domisilinya) ada di dalam daftar wilayah yang bisa diakses
+                return parent::getEloquentQuery()
+                    ->whereIn('region_id', $accessibleRegionIds)
+                    ->with(['region', 'creator', 'referrer']);
+            }
+        }
+
+        // 3. Jika pengguna berada di level SUBUNIT (Kepala SubUnit, Admin SubUnit)
+        if ($user->hasAnyRole(['Kepala SubUnit', 'Admin SubUnit'])) {
+            if ($user->region_id) {
+                // Hanya tampilkan nasabah yang region_id (domisilinya) sama dengan region_id pengguna
+                return parent::getEloquentQuery()
+                    ->where('region_id', $user->region_id)
+                    ->with(['region', 'creator', 'referrer']);
+            }
+        }
+        
+        // 4. Untuk peran lain (seperti Manager Keuangan yang tidak terkait wilayah), 
+        // jangan tampilkan data nasabah apa pun secara default.
+        return parent::getEloquentQuery()->whereRaw('1 = 0'); // Query yang selalu mengembalikan hasil kosong
     }
 
     // Menggunakan mutateFormDataBeforeCreate untuk mengisi created_by

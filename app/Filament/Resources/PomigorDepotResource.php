@@ -160,12 +160,6 @@ class PomigorDepotResource extends Resource
             ]);
     }
     
-    public static function getEloquentQuery(): Builder
-    {
-        // Eager load relasi yang sering diakses di tabel atau view
-        return parent::getEloquentQuery()->with(['region', 'customer', 'creator']);
-    }
-
     public static function getRelations(): array
     {
         return [
@@ -188,5 +182,31 @@ class PomigorDepotResource extends Resource
     {
         // Izinkan jika user adalah salah satu dari peran ini
         return Auth::check() && Auth::user()->hasAnyRole(['Admin Unit', 'Kepala Unit', 'Admin Cabang', 'Kepala Cabang', 'Tim IT']);
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        $user = Auth::user();
+
+        // 1. Jika pengguna adalah peran global (Cabang atau Tim IT), tampilkan semua depot.
+        if ($user->hasRole(['Tim IT', 'Kepala Cabang', 'Analis Cabang', 'Admin Cabang'])) {
+            // Kembalikan query asli dengan eager loading
+            return parent::getEloquentQuery()->with(['region', 'customer', 'creator']);
+        }
+
+        // 2. Jika pengguna berada di level UNIT (Kepala Unit, Analis Unit, Admin Unit)
+        if ($user->hasAnyRole(['Kepala Unit', 'Analis Unit', 'Admin Unit'])) {
+            if ($user->region_id) {
+                // Tampilkan depot yang 'region_id'-nya SAMA PERSIS dengan region_id pengguna.
+                // Logika child SubUnit tidak diperlukan di sini karena depot dikelola di level Unit.
+                return parent::getEloquentQuery()
+                    ->where('region_id', $user->region_id)
+                    ->with(['region', 'customer', 'creator']);
+            }
+        }
+        
+        // 3. Untuk peran lain (seperti SubUnit atau Manager Keuangan yang tidak terkait langsung),
+        // jangan tampilkan depot apa pun secara default.
+        return parent::getEloquentQuery()->whereRaw('1 = 0'); // Query yang selalu mengembalikan hasil kosong
     }
 }

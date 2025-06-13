@@ -43,6 +43,24 @@ class CustomerSeeder extends Seeder
             'region_id' => $regionSubUnitPtkKota->id, 'created_by' => $adminSubUnitUser->id,
         ]);
 
+
+        // --- DATA CUSTOMER BARU UNTUK UJI WILAYAH KUBU RAYA ---
+        $creatorKubuRaya = User::where('email', 'admin.subunit.sry@wgs.com')->first();
+        $regionKubuRaya = Region::where('code', 'KRY01-SRY')->first();
+
+        if ($creatorKubuRaya && $regionKubuRaya) {
+            Customer::firstOrCreate(['nik' => '3210987654321004'], [
+                'name' => 'Dewi Lestari (Test UAT Kubu Raya)',
+                'phone' => '089876543210',
+                'email' => 'dewi.lestari.uat@example.com',
+                'address' => 'Jl. Arteri Supadio No. 50, Sungai Raya',
+                'region_id' => $regionKubuRaya->id,
+                'created_by' => $creatorKubuRaya->id,
+            ]);
+        }
+        // ---------------------------------------------------------
+
+
         $this->command->info('CustomerSeeder berhasil dijalankan.');
     }
 }
