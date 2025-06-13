@@ -32,6 +32,9 @@ class AdminPanelProvider extends PanelProvider
             ->sidebarCollapsibleOnDesktop()
             ->path('admin')
             ->login(AppCustomLoginPage::class) 
+            // Ganti logo dan ukurannya
+            ->brandLogo(asset('images/Logo.png'))
+            ->brandLogoHeight('64px') // 
             ->colors([
                 'primary' => [
                     50 =>  '#f2fbf3',  
@@ -55,7 +58,7 @@ class AdminPanelProvider extends PanelProvider
             ])
             // ---------------------------------
 
-            ->brandLogo(fn () => view('filament.shared.custom_brand')) 
+            // ->brandLogo(fn () => view('filament.shared.custom_brand')) 
 
 
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')

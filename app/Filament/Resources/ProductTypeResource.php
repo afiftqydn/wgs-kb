@@ -23,7 +23,11 @@ class ProductTypeResource extends Resource
     protected static ?string $model = ProductType::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-cube'; // Ganti ikon
-    protected static ?string $navigationGroup = 'Manajemen Master';
+    protected static ?string $navigationGroup = 'Data Master';
+    protected static ?string $navigationLabel = 'Jenis Produk';
+    protected static ?string $pluralModelLabel = 'Data Jenis Produk'; // Consistent and descriptive
+    protected static ?string $modelLabel = 'Jenis Produk'; 
+    protected static ?int $navigationSort = 4;
 
     public static function form(Form $form): Form
     {

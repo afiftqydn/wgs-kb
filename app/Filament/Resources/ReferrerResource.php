@@ -21,7 +21,13 @@ class ReferrerResource extends Resource
     protected static ?string $model = Referrer::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-share';
-    protected static ?string $navigationGroup = 'Manajemen Master'; // Atau grup lain yang sesuai
+    protected static ?string $navigationGroup = 'Data Master';
+    protected static ?string $navigationLabel = 'Pemberi Referensi';
+    protected static ?string $pluralModelLabel = 'Data Pemberi Referensi';
+    protected static ?string $modelLabel = 'Pemberi Referensi';
+    protected static ?int $navigationSort = 5;
+
+
 
     public static function form(Form $form): Form
     {

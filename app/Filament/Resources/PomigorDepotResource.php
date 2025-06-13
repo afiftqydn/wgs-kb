@@ -30,11 +30,13 @@ class PomigorDepotResource extends Resource
 {
     protected static ?string $model = PomigorDepot::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-cube'; // Ganti ikon jika ada yang lebih pas untuk POMIGOR
+    protected static ?string $navigationIcon = 'heroicon-o-building-storefront'; // Ikon sudah cukup mewakili gudang/depot
     protected static ?string $navigationGroup = 'Manajemen POMIGOR';
-    protected static ?string $navigationLabel = 'Depot POMIGOR';
-    protected static ?string $pluralModelLabel = 'Depot POMIGOR';
-    protected static ?int $navigationSort = 1; // Urutan pertama di grup Manajemen POMIGOR
+    protected static ?string $navigationLabel = 'Data Depot';
+    protected static ?string $pluralModelLabel = 'Data Depot';
+    protected static ?string $modelLabel = 'Depot';
+    protected static ?int $navigationSort = 7;
+
 
     public static function form(Form $form): Form
     {

@@ -9,11 +9,13 @@ use Illuminate\Support\Collection; // Untuk tipe data hasil
 
 class ReportGeneratorPage extends Page
 {
-    protected static ?string $navigationIcon = 'heroicon-o-document-chart-bar';
+    protected static ?string $navigationIcon = 'heroicon-o-clipboard-document';
     protected static string $view = 'filament.pages.report-generator-page';
-    protected static ?string $navigationGroup = 'Laporan'; // Grup navigasi baru
+    protected static ?string $navigationGroup = 'Manajemen Nasabah';
+    protected static ?string $navigationLabel = 'Laporan';
     protected static ?string $title = 'Generator Laporan';
-    protected static ?string $navigationLabel = 'Buat Laporan';
+    protected static ?int $navigationSort = 3;
+   
 
     // Anda bisa menambahkan properti untuk filter di sini
     public ?string $startDate = null;

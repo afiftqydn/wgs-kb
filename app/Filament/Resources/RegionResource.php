@@ -16,9 +16,12 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 class RegionResource extends Resource
 {
     protected static ?string $model = Region::class;
-
-    protected static ?string $navigationIcon = 'heroicon-o-map-pin'; // Ganti ikon sesuai keinginan
-    protected static ?string $navigationGroup = 'Manajemen Master'; // Grup di navigasi sidebar
+    protected static ?string $navigationIcon = 'heroicon-o-map-pin'; // Ikon peta, sudah sesuai
+    protected static ?string $navigationGroup = 'Data Master'; // Grup sidebar yang konsisten
+    protected static ?string $navigationLabel = 'Wilayah';
+    protected static ?string $pluralModelLabel = 'Data Wilayah';
+    protected static ?string $modelLabel = 'Wilayah';
+    protected static ?int $navigationSort = 6;
 
     public static function form(Form $form): Form
     {
