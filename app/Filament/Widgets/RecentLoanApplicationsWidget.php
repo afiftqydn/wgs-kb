@@ -16,10 +16,10 @@ class RecentLoanApplicationsWidget extends BaseWidget
     protected int | string | array $columnSpan = 'full'; // Widget ini mengambil lebar penuh
 
     // Judul widget (opsional, defaultnya akan mengambil dari nama kelas)
-    // public function getTableHeading(): string
-    // {
-    //     return 'Permohonan Pembiayaan Terbaru / Tugas Saya';
-    // }
+    public function getTableHeading(): string
+    {
+        return 'Permohonan Pembiayaan Terbaru / Tugas Saya';
+    }
 
     protected function getTableQuery(): Builder
     {

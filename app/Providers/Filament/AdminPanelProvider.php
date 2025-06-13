@@ -11,15 +11,16 @@ use Filament\Http\Middleware\Authenticate;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Filament\Http\Middleware\AuthenticateSession;
+use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use App\Filament\Widgets\RecentLoanApplicationsWidget;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use App\Filament\Widgets\LoanApplicationStatsOverview; 
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use App\Filament\Pages\Auth\LoginPage as AppCustomLoginPage;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
-use App\Filament\Widgets\LoanApplicationStatsOverview; 
 
 
 class AdminPanelProvider extends PanelProvider
@@ -88,6 +89,9 @@ class AdminPanelProvider extends PanelProvider
             ->databaseNotificationsPolling('30s')
             ->authMiddleware([
                 Authenticate::class,
+            ])
+            ->plugins([
+                FilamentShieldPlugin::make() // <-- Daftarkan di sini
             ]);
     }
 }

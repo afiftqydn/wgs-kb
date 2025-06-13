@@ -13,6 +13,7 @@ class UserSeeder extends Seeder
     public function run(): void
     {
         $roleTimIT = Role::where('name', 'Tim IT')->first();
+        $roleManagerKeuangan = Role::where('name', 'Manager Keuangan')->first(); 
         $roleAdminCabang = Role::where('name', 'Admin Cabang')->first();
         $roleKepalaCabang = Role::where('name', 'Kepala Cabang')->first();
         $roleAnalisCabang = Role::where('name', 'Analis Cabang')->first();
@@ -29,7 +30,20 @@ class UserSeeder extends Seeder
 
         // Global User
         if ($roleTimIT) User::firstOrCreate(['email' => 'it@wgs.com'], ['name' => 'Tim IT WGS', 'password' => Hash::make('password123'), 'region_id' => null, 'wgs_job_title' => 'Staf IT', 'wgs_level' => 'GLOBAL', 'email_verified_at' => now()])->assignRole($roleTimIT);
-        
+        if ($roleManagerKeuangan) {
+            User::firstOrCreate(
+                ['email' => 'manager.keuangan@wgs.com'],
+                [
+                    'name' => 'Manager Keuangan',
+                    'password' => Hash::make('password123'),
+                    'region_id' => null, // Peran ini bersifat global, tidak terikat wilayah
+                    'wgs_job_title' => 'Manager Keuangan',
+                    'wgs_level' => 'GLOBAL',
+                    'email_verified_at' => now(),
+                ]
+            )->assignRole($roleManagerKeuangan);
+        }
+
         // Cabang Users
         if ($roleKepalaCabang && $regionCabangKalbar) User::firstOrCreate(['email' => 'kacab.kalbar@wgs.com'], ['name' => 'Kepala Cabang Kalbar', 'password' => Hash::make('password123'), 'region_id' => $regionCabangKalbar->id, 'wgs_job_title' => 'Kepala Cabang', 'wgs_level' => 'CABANG', 'email_verified_at' => now()])->assignRole($roleKepalaCabang);
         if ($roleAdminCabang && $regionCabangKalbar) User::firstOrCreate(['email' => 'admin.cabang.kalbar@wgs.com'],['name' => 'Admin Cabang Kalbar', 'password' => Hash::make('password123'), 'region_id' => $regionCabangKalbar->id, 'wgs_job_title' => 'Admin Cabang', 'wgs_level' => 'CABANG', 'email_verified_at' => now()])->assignRole($roleAdminCabang);
