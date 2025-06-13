@@ -8,6 +8,7 @@ Route::get('/', function () {
 });
 
 Route::middleware(['auth'])->group(function () { // Contoh jika perlu otentikasi
-    Route::get('/loan-applications/{loanApplication}/decision-letter', [PdfExportController::class, 'generateLoanDecisionLetter'])
-        ->name('loanApplication.decisionLetter');
+Route::get('/loan-applications/{loanApplication}/complete-package', [PdfExportController::class, 'generateCompletePackage'])
+    ->name('loanApplication.completePackagePdf')
+    ->middleware('auth');
 });

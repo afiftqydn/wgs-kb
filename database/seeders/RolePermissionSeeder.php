@@ -25,7 +25,7 @@ class RolePermissionSeeder extends Seeder
             'view_any_product::type', 'create_product::type', 'update_product::type', 'delete_product::type',
             'view_any_customer', 'create_customer', 'update_customer', 'delete_customer',
             'view_any_referrer', 'create_referrer', 'update_referrer', 'delete_referrer',
-            'view_any_loan::application', 'create_loan::application', 'update_loan::application', 'delete_loan::application',
+            'view_any_loan::application', 'create_loan::application', 'update_loan::application', 'delete_loan::application','view_loan::application',
             'view_any_pomigor::depot', 'create_pomigor::depot', 'update_pomigor::depot', 'delete_pomigor::depot',
             'view_any_activity::log',
             'view_report::generator::page',
@@ -55,14 +55,14 @@ class RolePermissionSeeder extends Seeder
         $roleKepalaSubUnit->syncPermissions(['access_admin_panel', 'view_any_customer', 'view_any_loan::application']);
 
         // Level Unit
-        $roleAdminUnit->syncPermissions(['access_admin_panel', 'view_any_loan::application', 'update_loan::application', 'view_any_customer', 'create_customer', 'update_customer', 'delete_customer', 'view_any_pomigor::depot', 'create_pomigor::depot', 'update_pomigor::depot']);
-        $roleAnalisUnit->syncPermissions(['access_admin_panel', 'view_any_loan::application', 'update_loan::application', 'view_any_customer', 'view_any_pomigor::depot']);
-        $roleKepalaUnit->syncPermissions(['access_admin_panel', 'view_any_loan::application', 'update_loan::application', 'view_any_customer', 'view_any_pomigor::depot', 'view_report::generator::page']);
+        $roleAdminUnit->syncPermissions(['access_admin_panel', 'view_any_loan::application', 'update_loan::application','view_loan::application', 'create_loan::application', 'view_any_customer', 'create_customer', 'update_customer', 'delete_customer', 'view_any_pomigor::depot', 'create_pomigor::depot', 'update_pomigor::depot']);
+        $roleAnalisUnit->syncPermissions(['access_admin_panel','view_loan::application', 'view_any_loan::application', 'update_loan::application', 'view_any_customer', 'view_any_pomigor::depot']);
+        $roleKepalaUnit->syncPermissions(['access_admin_panel', 'view_any_loan::application','view_loan::application', 'update_loan::application', 'view_any_customer', 'view_any_pomigor::depot', 'view_report::generator::page']);
 
         // Level Cabang
-        $roleAdminCabang->syncPermissions(['access_admin_panel', 'view_any_user', 'create_user', 'update_user', 'view_any_shield::role', 'update_shield::role', 'view_any_region', 'create_region', 'update_region', 'view_any_product::type', 'create_product::type', 'update_product::type', 'view_any_referrer', 'create_referrer', 'update_referrer']);
-        $roleAnalisCabang->syncPermissions(['access_admin_panel', 'view_any_loan::application', 'view_any_customer', 'view_any_pomigor::depot', 'view_report::generator::page']);
-        $roleKepalaCabang->syncPermissions(['access_admin_panel', 'view_any_loan::application', 'update_loan::application', 'view_any_customer', 'view_any_pomigor::depot', 'view_report::generator::page', 'view_any_user']);
+        $roleAdminCabang->syncPermissions(['access_admin_panel', 'view_any_user', 'create_user', 'update_user', 'view_any_shield::role', 'update_shield::role', 'view_any_region', 'create_region', 'update_region', 'view_any_product::type', 'create_product::type', 'update_product::type', 'view_any_referrer', 'create_referrer', 'update_referrer','view_loan::application', 'create_loan::application', 'update_loan::application']);
+        $roleAnalisCabang->syncPermissions(['access_admin_panel', 'view_any_loan::application', 'view_any_customer', 'view_any_pomigor::depot', 'view_report::generator::page','view_loan::application']);
+        $roleKepalaCabang->syncPermissions(['access_admin_panel', 'view_any_loan::application', 'update_loan::application', 'view_any_customer', 'view_any_pomigor::depot', 'view_report::generator::page', 'view_any_user', 'view_loan::application']);
         $roleManagerKeuangan->syncPermissions([
             'access_admin_panel',
             'view_any_karyawan',

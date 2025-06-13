@@ -3,58 +3,73 @@
 namespace App\Http\Controllers;
 
 use App\Models\LoanApplication;
-use Barryvdh\DomPDF\Facade\Pdf; // Import Facade PDF
-use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Storage;
 
 class PdfExportController extends Controller
 {
-    public function generateLoanDecisionLetter(LoanApplication $loanApplication)
+    public function generateCompletePackage(LoanApplication $loanApplication)
     {
-        // Pastikan hanya permohonan yang sudah diputuskan yang bisa dicetak suratnya
+        // Validasi status: hanya yang sudah disetujui/ditolak
         if (!in_array($loanApplication->status, ['APPROVED', 'REJECTED'])) {
-            // abort(403, 'Surat keputusan hanya bisa dicetak untuk permohonan yang sudah disetujui atau ditolak.');
-            // Atau redirect dengan pesan error
-            return redirect()->back()->with('error', 'Surat keputusan hanya bisa dicetak untuk status APPROVED atau REJECTED.');
+            return redirect()->back()->with('error', 'Dokumen lengkap hanya bisa dibuat untuk permohonan yang sudah disetujui atau ditolak.');
         }
 
-        // Eager load relasi yang dibutuhkan di Blade view
-        $loanApplication->load(['customer', 'productType', 'inputRegion', 'processingRegion', 'workflows.processor']);
+        // Load semua relasi yang dibutuhkan
+        $loanApplication->load([
+            'customer.region',
+            'productType',
+            'documents',
+            'inputRegion',
+            'processingRegion',
+            'workflows.processor',
+        ]);
 
-        // Ambil catatan terakhir yang relevan dengan status approval/rejection
-        $workflowNotes = [];
-        $decisionMakerName = 'Pejabat Berwenang';
-        $decisionMakerRole = 'PT WGS';
-
+        // Ambil catatan keputusan (workflow terakhir yang sesuai status)
         $decisionWorkflow = $loanApplication->workflows()
-                            ->where('to_status', $loanApplication->status) // Cari log yang menghasilkan status saat ini
-                            ->orderBy('created_at', 'desc')
-                            ->first();
+            ->where('to_status', $loanApplication->status)
+            ->latest()
+            ->first();
 
-        if ($decisionWorkflow) {
-            $workflowNotes[$loanApplication->status] = $decisionWorkflow->notes;
-            if ($decisionWorkflow->processor) {
-                $decisionMakerName = $decisionWorkflow->processor->name;
-                // Ambil nama peran pertama dari user tersebut sebagai contoh
-                $decisionMakerRole = $decisionWorkflow->processor->roles->first()->name ?? 'PT WGS'; 
+        $decisionNotes = $decisionWorkflow ? $decisionWorkflow->notes : 'Tidak ada catatan.';
+        $decisionMakerName = $decisionWorkflow?->processor->name ?? 'Pejabat Berwenang';
+        $decisionMakerRole = $decisionWorkflow?->processor->roles->pluck('name')->first() ?? 'PT WGS';
+
+        // Filter dokumen gambar dan PDF
+        $imageDocuments = $loanApplication->documents->filter(fn ($doc) =>
+            str_starts_with($doc->mime_type, 'image/')
+        );
+
+        $pdfDocuments = $loanApplication->documents->filter(fn ($doc) =>
+            $doc->mime_type === 'application/pdf'
+        );
+
+        // Enkode dokumen gambar menjadi base64
+        foreach ($imageDocuments as $doc) {
+            $path = storage_path('app/public/' . $doc->file_path);
+
+            if (file_exists($path)) {
+                $doc->base64image = 'data:' . $doc->mime_type . ';base64,' . base64_encode(file_get_contents($path));
+            } else {
+                $doc->base64image = null;
             }
         }
 
-
+        // Siapkan data untuk dikirim ke Blade
         $data = [
             'loanApplication' => $loanApplication,
-            'workflowNotes' => $workflowNotes,
+            'decisionNotes' => $decisionNotes,
             'decisionMakerName' => $decisionMakerName,
             'decisionMakerRole' => $decisionMakerRole,
+            'imageDocuments' => $imageDocuments,
+            'pdfDocuments' => $pdfDocuments,
         ];
 
-        // Buat nama file PDF
-        $fileName = 'Surat_Keputusan_' . str_replace('/', '_', $loanApplication->application_number) . '.pdf';
+        // Nama file output PDF
+        $fileName = 'Dokumen_Lengkap_' . str_replace('/', '_', $loanApplication->application_number) . '.pdf';
 
-        // Generate PDF
-        $pdf = Pdf::loadView('pdf.loan_decision_letter', $data);
-
-        // Bisa langsung di-download atau ditampilkan di browser
-        // return $pdf->download($fileName); // Untuk langsung download
-        return $pdf->stream($fileName); // Untuk ditampilkan di browser lalu bisa di-save/print
+        // Generate dan stream PDF
+        $pdf = Pdf::loadView('pdf.loan_application_package', $data)->setPaper('a4', 'portrait');
+        return $pdf->stream($fileName);
     }
 }

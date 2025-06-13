@@ -24,7 +24,7 @@ class LoginPage extends BaseLogin
     public function getHeading(): string | Htmlable
     {
         // Kosongkan heading
-        return "Assalamu'alaikum Wr.Wb";
+        return "Assalamu'alaikum";
 
         // Atau ubah teks heading seperti contoh berikut:
         // return 'Selamat Datang di Aplikasi WGS';
