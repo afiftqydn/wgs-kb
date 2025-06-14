@@ -9,4 +9,8 @@ use Filament\Resources\Pages\CreateRecord;
 class CreateReferrer extends CreateRecord
 {
     protected static string $resource = ReferrerResource::class;
+    protected function getRedirectUrl(): string
+    {
+        return static::getResource()::getUrl('index');
+    }
 }

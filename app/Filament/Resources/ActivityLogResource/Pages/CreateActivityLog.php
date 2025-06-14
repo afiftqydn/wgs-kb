@@ -9,4 +9,8 @@ use Filament\Resources\Pages\CreateRecord;
 class CreateActivityLog extends CreateRecord
 {
     protected static string $resource = ActivityLogResource::class;
+    protected function getRedirectUrl(): string
+    {
+        return static::getResource()::getUrl('index');
+    }
 }

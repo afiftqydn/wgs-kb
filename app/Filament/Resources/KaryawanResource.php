@@ -14,7 +14,7 @@ class KaryawanResource extends Resource
 {
     protected static ?string $model = Karyawan::class;
     protected static ?string $navigationIcon = 'heroicon-o-user-group';
-    protected static ?string $navigationGroup = 'Manajemen Pengguna';
+    protected static ?string $navigationGroup = 'Data Master';
     protected static ?string $navigationLabel = 'Data Karyawan';
     protected static ?string $pluralModelLabel = 'Data Karyawan';
     protected static ?string $modelLabel = 'Karyawan';

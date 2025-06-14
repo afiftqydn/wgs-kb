@@ -39,7 +39,7 @@ class LoanApplicationResource extends Resource
     protected static ?string $navigationLabel = 'Pengajuan Pinjaman';
     protected static ?string $pluralModelLabel = 'Data Pengajuan Pinjaman'; // Consistent and descriptive
     protected static ?string $modelLabel = 'Pengajuan Pinjaman'; 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort =1;
 
     public static function form(Form $form): Form
     {
