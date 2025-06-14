@@ -13,7 +13,10 @@ class ListLoanApplications extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make()->label('Tambah Pengajuan'),
+            Actions\CreateAction::make()
+                ->label('Tambah Pengajuan')
+                ->icon('heroicon-s-plus-circle')
+                ->color('success'),
         ];
     }
 }

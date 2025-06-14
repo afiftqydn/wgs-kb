@@ -13,7 +13,10 @@ class ListRegions extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make(),
+            Actions\CreateAction::make()
+                ->label('Tambah Wilayah Baru')
+                ->icon('heroicon-s-plus-circle')
+                ->color('success'),
         ];
     }
 }

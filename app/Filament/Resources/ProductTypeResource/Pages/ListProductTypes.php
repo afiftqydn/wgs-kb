@@ -13,7 +13,10 @@ class ListProductTypes extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make(),
+            Actions\CreateAction::make()
+                ->label('Tambah Jenis Produk')
+                ->icon('heroicon-s-plus-circle')
+                ->color('success'),
         ];
     }
 }

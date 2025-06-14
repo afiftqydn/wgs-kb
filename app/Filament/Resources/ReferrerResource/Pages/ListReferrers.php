@@ -13,7 +13,10 @@ class ListReferrers extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make(),
+            Actions\CreateAction::make()
+                ->label('Pemberi Referensi')
+                ->icon('heroicon-s-plus-circle')
+                ->color('success'),
         ];
     }
 }

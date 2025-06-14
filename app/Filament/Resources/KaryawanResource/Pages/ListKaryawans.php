@@ -13,7 +13,10 @@ class ListKaryawans extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make(),
+            Actions\CreateAction::make()
+                ->label('Tambah Karyawan')
+                ->icon('heroicon-s-plus-circle')
+                ->color('success'),
         ];
     }
 }

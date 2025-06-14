@@ -147,4 +147,17 @@ class UserResource extends Resource
             'edit' => Pages\EditUser::route('/{record}/edit'),
         ];
     }
+
+
+// ✅ Jumlah user sebagai badge
+public static function getNavigationBadge(): ?string
+{
+    return static::$model::count();
+}
+
+// ✅ Tooltip badge saat hover
+public static function getNavigationBadgeTooltip(): ?string
+{
+    return 'Jumlah Total Pengguna';
+}
 }

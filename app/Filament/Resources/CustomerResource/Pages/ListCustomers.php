@@ -13,7 +13,10 @@ class ListCustomers extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make(),
+            Actions\CreateAction::make()
+                ->label('Tambah Data Nasabah')
+                ->icon('heroicon-s-plus-circle')
+                ->color('success'),
         ];
     }
 }

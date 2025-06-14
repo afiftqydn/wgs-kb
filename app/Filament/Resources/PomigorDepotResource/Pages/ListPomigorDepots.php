@@ -13,7 +13,10 @@ class ListPomigorDepots extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make(),
+            Actions\CreateAction::make()
+                ->label('Depot Baru')
+                ->icon('heroicon-s-plus-circle')
+                ->color('success'),
         ];
     }
 }
