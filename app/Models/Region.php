@@ -4,8 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany; // Tambahkan ini
+use Illuminate\Database\Eloquent\Relations\BelongsTo; // Tambahkan ini
 
 class Region extends Model
 {
@@ -19,7 +19,11 @@ class Region extends Model
         'status',
     ];
 
-    // Relasi untuk hierarki (self-reference)
+    protected $casts = [
+        'status' => 'string',
+        'type' => 'string',
+    ];
+
     public function parent(): BelongsTo
     {
         return $this->belongsTo(Region::class, 'parent_id');
@@ -30,15 +34,8 @@ class Region extends Model
         return $this->hasMany(Region::class, 'parent_id');
     }
 
-    // Relasi ke Users
-    public function users(): HasMany
+    public function karyawans(): HasMany
     {
-        return $this->hasMany(User::class);
-    }
-
-    // Relasi ke Referrers
-    public function referrers(): HasMany
-    {
-        return $this->hasMany(Referrer::class);
+        return $this->hasMany(Karyawan::class);
     }
 }

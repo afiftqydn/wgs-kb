@@ -14,7 +14,7 @@ class ListKaryawans extends ListRecords
     {
         return [
             Actions\CreateAction::make()
-                ->label('Tambah Karyawan')
+                ->label('Tambah Data Karyawan')
                 ->icon('heroicon-s-plus-circle')
                 ->color('success'),
         ];

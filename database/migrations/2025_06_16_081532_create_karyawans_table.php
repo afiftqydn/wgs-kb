@@ -29,7 +29,7 @@ return new class extends Migration
             $table->enum('agama', ['Islam', 'Kristen Protestan', 'Kristen Katolik', 'Hindu', 'Buddha', 'Khonghucu']);
 
             // --- DATA KEPEGAWAIAN ---
-            $table->string('kantor'); // Lokasi kerja
+            $table->foreignId('region_id')->constrained('regions')->onDelete('restrict'); // Mengubah kantor menjadi foreign key ke tabel regions
             $table->enum('status_karyawan', ['Tetap/PKWTT', 'Kontrak/PKWT', 'Magang', 'Harian']);
             $table->date('tanggal_bergabung');
             $table->date('tanggal_berakhir_kontrak')->nullable(); // Hanya untuk PKWT
@@ -45,7 +45,7 @@ return new class extends Migration
             // --- KONTAK DARURAT ---
             $table->string('nama_kontak_darurat');
             $table->string('hubungan_kontak_darurat');
-            $table->string('no_hp_kontak_darurat', 20); // Menambahkan nomor HP untuk kontak darurat
+            $table->string('no_hp_kontak_darurat', 20);
 
             // --- DOKUMEN DIGITAL (PATH FILE) ---
             $table->string('pas_foto')->nullable();

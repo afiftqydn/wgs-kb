@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo; // Tambahkan ini
 
 class Karyawan extends Model
 {
@@ -26,7 +27,7 @@ class Karyawan extends Model
         'alamat_domisili',
         'status_pernikahan',
         'agama',
-        'kantor',
+        'region_id', // Ubah 'kantor' menjadi 'region_id'
         'status_karyawan',
         'tanggal_bergabung',
         'tanggal_berakhir_kontrak',
@@ -59,4 +60,12 @@ class Karyawan extends Model
         'agama' => 'string',
         'status_karyawan' => 'string',
     ];
+
+    /**
+     * Get the region that owns the Karyawan.
+     */
+    public function region(): BelongsTo
+    {
+        return $this->belongsTo(Region::class);
+    }
 }
