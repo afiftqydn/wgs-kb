@@ -27,7 +27,7 @@ class KaryawanResource extends Resource
     protected static ?string $model = Karyawan::class;
     protected static ?string $navigationIcon = 'heroicon-o-user-group';
     protected static ?string $navigationGroup = 'Data Master';
-    protected static ?string $navigationLabel = 'Data Karyawan';
+    protected static ?string $navigationLabel = 'Data Karyawan WGS';
     protected static ?string $pluralModelLabel = 'Data Karyawan';
     protected static ?string $modelLabel = 'Data Karyawan';
     protected static ?int $navigationSort = 9;
@@ -237,8 +237,8 @@ class KaryawanResource extends Resource
         ];
     }
 
-    public static function getNavigationBadge(): ?string
-    {
-        return static::$model::count();
-    }
+    // public static function getNavigationBadge(): ?string
+    // {
+    //     return static::$model::count();
+    // }
 }

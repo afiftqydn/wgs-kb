@@ -35,10 +35,10 @@ class LoanApplicationResource extends Resource
     protected static ?string $model = LoanApplication::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-banknotes';
-    protected static ?string $navigationGroup = 'Manajemen Nasabah'; // Grup baru atau yang sesuai
-    protected static ?string $navigationLabel = 'Pengajuan Pinjaman';
-    protected static ?string $pluralModelLabel = 'Data Pengajuan Pinjaman'; // Consistent and descriptive
-    protected static ?string $modelLabel = 'Pengajuan Pinjaman'; 
+    protected static ?string $navigationGroup = 'Manajemen Pengajuan'; // Grup baru atau yang sesuai
+    protected static ?string $navigationLabel = 'Pengajuan Pembiayaan';
+    protected static ?string $pluralModelLabel = 'Data Pengajuan Pembiayaan'; // Consistent and descriptive
+    protected static ?string $modelLabel = 'Pengajuan Pembiayaan'; 
     protected static ?int $navigationSort =1;
 
     public static function form(Form $form): Form

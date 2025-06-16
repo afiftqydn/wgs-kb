@@ -22,9 +22,9 @@ class ReferrerResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-share';
     protected static ?string $navigationGroup = 'Data Master';
-    protected static ?string $navigationLabel = 'Pemberi Referensi';
-    protected static ?string $pluralModelLabel = 'Data Pemberi Referensi';
-    protected static ?string $modelLabel = 'Pemberi Referensi';
+    protected static ?string $navigationLabel = 'Referral';
+    protected static ?string $pluralModelLabel = 'Data Referral';
+    protected static ?string $modelLabel = 'Data Referral';
     protected static ?int $navigationSort = 5;
 
 

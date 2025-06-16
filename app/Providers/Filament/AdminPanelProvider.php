@@ -33,9 +33,16 @@ class AdminPanelProvider extends PanelProvider
             ->sidebarCollapsibleOnDesktop()
             ->path('admin')
             ->login(AppCustomLoginPage::class) 
-            // Ganti logo dan ukurannya
             ->brandLogo(asset('images/Logo.png'))
             ->brandLogoHeight('64px') // 
+
+            ->navigationGroups([
+                    'Manajemen Pengajuan',
+                    'Data Master',
+                    'Manajemen POMIGOR',
+                    'Administrasi Sistem',
+                ])
+
             ->colors([
                 'primary' => [
                     50 =>  '#f2fbf3',  
@@ -50,17 +57,12 @@ class AdminPanelProvider extends PanelProvider
                     900 => '#1d4a23',
                     950 => '#0b280f',
                 ],
-                // Anda bisa juga mengatur warna lain jika perlu:
-                'danger' => Color::Red, // Atau palet kustom untuk danger
+                'danger' => Color::Red, 
                 'gray' => Color::Slate,
                 'info' => Color::Sky,
                 'success' => Color::Green,
                 'warning' => Color::Orange,
             ])
-            // ---------------------------------
-
-            // ->brandLogo(fn () => view('filament.shared.custom_brand')) 
-
 
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
@@ -69,10 +71,8 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
-                // Widgets\FilamentInfoWidget::class,
-                LoanApplicationStatsOverview::class,
-                // Widgets\AccountWidget::class,
-                RecentLoanApplicationsWidget::class, // <-- DAFTARKAN WIDGET BARU ANDA
+                Widgets\AccountWidget::class,
+                RecentLoanApplicationsWidget::class, 
             ])
             ->middleware([
                 EncryptCookies::class,

@@ -29,6 +29,7 @@ class RolePermissionSeeder extends Seeder
             'view_any_pomigor::depot', 'create_pomigor::depot', 'update_pomigor::depot', 'delete_pomigor::depot',
             'view_any_activity::log',
             'view_report::generator::page',
+            'view_any_arsip', 'create_arsip', 'update_arsip', 'delete_arsip',
         ];
         foreach ($permissions as $permission) {
             Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'web']);
