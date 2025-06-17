@@ -4,7 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\KaryawanResource\Pages;
 use App\Models\Karyawan;
-use App\Models\Region; // Import model Region
+use App\Models\Region;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Grid;
@@ -18,12 +18,11 @@ use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Resources\Resource;
 use Filament\Tables;
-use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Filament\Tables\Actions\Action;
-use Illuminate\Database\Eloquent\Builder; // Import Builder
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth; // <-- [PERBAIKAN] Mengimpor facade Auth
 
 class KaryawanResource extends Resource
 {
@@ -109,14 +108,12 @@ class KaryawanResource extends Resource
                                 ->label('Tanggal Berakhir Kontrak (jika PKWT)')
                                 ->native(false)
                                 ->visible(fn (Get $get) => $get('status_karyawan') === 'Kontrak/PKWT'),
-                            // Mengubah TextInput 'kantor' menjadi Select 'region_id'
                             Select::make('region_id')
                                 ->label('Kantor/Wilayah')
-                                ->relationship('region', 'name') // Menghubungkan ke model Region, menampilkan kolom 'name'
+                                ->relationship('region', 'name')
                                 ->required()
                                 ->searchable()
-                                ->preload() // Opsional: muat semua opsi di awal untuk pencarian lebih cepat
-                                ->getOptionLabelUsing(fn ($value): ?string => Region::find($value)?->name), // Pastikan label tampil dengan benar saat diedit
+                                ->preload(),
                             TextInput::make('no_hp')
                                 ->label('No. HP Aktif')
                                 ->tel()
@@ -126,14 +123,14 @@ class KaryawanResource extends Resource
                     Tabs\Tab::make('Finansial & Legal')
                         ->icon('heroicon-o-banknotes')
                         ->schema([
-                             TextInput::make('npwp')->label('Nomor NPWP')->unique(ignoreRecord: true)->nullable(),
-                             TextInput::make('bpjs_ketenagakerjaan')->label('Nomor BPJS Ketenagakerjaan')->unique(ignoreRecord: true)->nullable(),
-                             TextInput::make('bpjs_kesehatan')->label('Nomor BPJS Kesehatan')->unique(ignoreRecord: true)->nullable(),
-                             Section::make('Informasi Rekening Bank')->schema([
-                                 TextInput::make('nama_bank')->label('Nama Bank')->nullable(),
-                                 TextInput::make('nomor_rekening')->label('Nomor Rekening')->nullable(),
-                                 TextInput::make('nama_pemilik_rekening')->label('Atas Nama')->nullable(),
-                             ])->columns(3),
+                            TextInput::make('npwp')->label('Nomor NPWP')->unique(ignoreRecord: true)->nullable(),
+                            TextInput::make('bpjs_ketenagakerjaan')->label('Nomor BPJS Ketenagakerjaan')->unique(ignoreRecord: true)->nullable(),
+                            TextInput::make('bpjs_kesehatan')->label('Nomor BPJS Kesehatan')->unique(ignoreRecord: true)->nullable(),
+                            Section::make('Informasi Rekening Bank')->schema([
+                                TextInput::make('nama_bank')->label('Nama Bank')->nullable(),
+                                TextInput::make('nomor_rekening')->label('Nomor Rekening')->nullable(),
+                                TextInput::make('nama_pemilik_rekening')->label('Atas Nama')->nullable(),
+                            ])->columns(3),
                         ]),
 
                     Tabs\Tab::make('Kontak Darurat')
@@ -188,8 +185,10 @@ class KaryawanResource extends Resource
                 TextColumn::make('jabatan')
                     ->searchable()
                     ->sortable(),
-                BadgeColumn::make('status_karyawan')
+                // [PERBAIKAN] Menggunakan TextColumn dengan ->badge()
+                TextColumn::make('status_karyawan')
                     ->label('Status')
+                    ->badge() // Menjadikan kolom ini sebagai badge
                     ->colors([
                         'success' => 'Tetap/PKWTT',
                         'warning' => 'Kontrak/PKWT',
@@ -197,7 +196,7 @@ class KaryawanResource extends Resource
                         'gray' => 'Harian',
                     ])
                     ->searchable(),
-                TextColumn::make('region.name') // Menampilkan nama region dari relasi
+                TextColumn::make('region.name')
                     ->label('Kantor')
                     ->searchable()
                     ->sortable(),
@@ -222,42 +221,8 @@ class KaryawanResource extends Resource
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ])
-            ->modifyQueryUsing(function (Builder $query) {
-                // Asumsi: User yang login memiliki kolom 'region_id'
-                $loggedInUserRegionId = auth()->user()->region_id;
-
-                if ($loggedInUserRegionId) {
-                    // Jika user adalah admin cabang, dia bisa melihat karyawan di semua unit dan subunit di bawah cabang tersebut.
-                    // Jika user adalah admin unit, dia bisa melihat karyawan di unit dan subunit di bawahnya.
-                    // Jika user adalah admin subunit, dia hanya melihat karyawan di subunitnya.
-
-                    $loggedInRegion = Region::find($loggedInUserRegionId);
-
-                    if ($loggedInRegion) {
-                        if ($loggedInRegion->type === 'CABANG') {
-                            // Dapatkan semua ID unit dan subunit di bawah cabang ini
-                            $regionIds = $loggedInRegion->children->pluck('id')->toArray(); // Unit
-                            foreach ($loggedInRegion->children as $unit) {
-                                $regionIds = array_merge($regionIds, $unit->children->pluck('id')->toArray()); // Subunit
-                            }
-                            $regionIds[] = $loggedInRegion->id; // Termasuk cabang itu sendiri jika ada karyawan yang langsung terdaftar di cabang
-
-                            $query->whereIn('region_id', $regionIds);
-                        } elseif ($loggedInRegion->type === 'UNIT') {
-                            // Dapatkan semua ID subunit di bawah unit ini
-                            $regionIds = $loggedInRegion->children->pluck('id')->toArray(); // Subunit
-                            $regionIds[] = $loggedInRegion->id; // Termasuk unit itu sendiri
-
-                            $query->whereIn('region_id', $regionIds);
-                        } elseif ($loggedInRegion->type === 'SUBUNIT') {
-                            // Hanya tampilkan karyawan di subunit ini
-                            $query->where('region_id', $loggedInUserRegionId);
-                        }
-                    }
-                }
-                // Jika tidak ada region_id pada user, atau tidak ada loggedInRegion,
-                // query akan mengembalikan semua data (Anda bisa menambahkan logic default di sini)
-            });
+            // [PERBAIKAN & PENYEDERHANAAN] Memanggil fungsi terpusat untuk menerapkan filter
+            ->modifyQueryUsing(fn (Builder $query) => static::applyRegionScope($query));
     }
 
     public static function getRelations(): array
@@ -278,27 +243,60 @@ class KaryawanResource extends Resource
 
     public static function getNavigationBadge(): ?string
     {
-        // Sesuaikan badge count dengan filter region
-        $loggedInUserRegionId = auth()->user()->region_id;
-        if ($loggedInUserRegionId) {
-            $loggedInRegion = Region::find($loggedInUserRegionId);
+        // [PERBAIKAN & PENYEDERHANAAN] Menggunakan query yang sudah difilter untuk menghitung badge
+        return static::getEloquentQuery()->count();
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        // [PENYEDERHANAAN] Mengaplikasikan scope region langsung ke query utama resource
+        $query = parent::getEloquentQuery();
+        return static::applyRegionScope($query);
+    }
+
+    /**
+     * [PENYEDERHANAAN] Fungsi terpusat untuk menerapkan filter berdasarkan region pengguna.
+     * Fungsi ini digunakan oleh table() dan getNavigationBadge() untuk menghindari duplikasi kode.
+     */
+    protected static function applyRegionScope(Builder $query): Builder
+    {
+        // [PERBAIKAN] Menggunakan Auth::user() untuk mendapatkan user yang login
+        $user = Auth::user();
+
+        // Pastikan user login dan memiliki region_id
+        if ($user && $user->region_id) {
+            // Mengambil region user beserta relasi turunannya untuk efisiensi
+            $loggedInRegion = Region::with(['children.children'])->find($user->region_id);
+
             if ($loggedInRegion) {
+                $regionIds = [];
+
                 if ($loggedInRegion->type === 'CABANG') {
-                    $regionIds = $loggedInRegion->children->pluck('id')->toArray();
+                    // Ambil ID cabang itu sendiri
+                    $regionIds[] = $loggedInRegion->id;
+                    // Ambil semua ID unit di bawah cabang
                     foreach ($loggedInRegion->children as $unit) {
+                        $regionIds[] = $unit->id;
+                        // Ambil semua ID subunit di bawah setiap unit
                         $regionIds = array_merge($regionIds, $unit->children->pluck('id')->toArray());
                     }
-                    $regionIds[] = $loggedInRegion->id;
-                    return static::$model::whereIn('region_id', $regionIds)->count();
                 } elseif ($loggedInRegion->type === 'UNIT') {
+                    // Ambil ID unit itu sendiri dan semua ID subunit di bawahnya
                     $regionIds = $loggedInRegion->children->pluck('id')->toArray();
                     $regionIds[] = $loggedInRegion->id;
-                    return static::$model::whereIn('region_id', $regionIds)->count();
                 } elseif ($loggedInRegion->type === 'SUBUNIT') {
-                    return static::$model::where('region_id', $loggedInUserRegionId)->count();
+                    // Hanya ambil ID subunit itu sendiri
+                    $regionIds[] = $loggedInRegion->id;
+                }
+
+                // Jika ada region ID yang terkumpul, filter query
+                if (!empty($regionIds)) {
+                    return $query->whereIn('region_id', $regionIds);
                 }
             }
         }
-        return static::$model::count(); // Default jika tidak ada filter region
+
+        // Jika user adalah super admin (tidak punya region_id) atau kondisi lain, kembalikan semua data
+        return $query;
     }
 }

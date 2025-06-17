@@ -5,7 +5,6 @@ namespace Database\Seeders;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\Region;
-use Illuminate\Support\Carbon;
 
 class RegionSeeder extends Seeder
 {
@@ -14,7 +13,8 @@ class RegionSeeder extends Seeder
      */
     public function run(): void
     {
-        // Level 1: Cabang
+        // 1. Buat Region Induk (Cabang)
+        // Region ini adalah level tertinggi yang menjadi parent dari semua unit.
         $cabangKalbar = Region::firstOrCreate(
             ['code' => 'KB00'],
             [
@@ -25,47 +25,57 @@ class RegionSeeder extends Seeder
             ]
         );
 
-        // Data Unit dan SubUnit dengan kode yang sudah disinkronkan
+        // 2. Definisikan Data Semua Unit
+        // Daftar ini berisi semua kabupaten/kota yang akan menjadi region bertipe UNIT.
+        // Data ini sengaja disamakan dengan array `kabupatenKotaUnits` di UserSeeder Anda.
         $unitsData = [
-            ['code_unit' => 'PNK01', 'name_unit' => 'Unit Kota Pontianak', 'code_subunit' => 'PNK01-PK', 'name_subunit' => 'SubUnit Pontianak Kota'],
-            ['code_unit' => 'SKW01', 'name_unit' => 'Unit Kota Singkawang', 'code_subunit' => 'SKW01-TGH', 'name_subunit' => 'SubUnit Singkawang Tengah'],
-            ['code_unit' => 'SBS01', 'name_unit' => 'Unit Kabupaten Sambas', 'code_subunit' => 'SBS01-SAM', 'name_subunit' => 'SubUnit Sambas'],
-            ['code_unit' => 'BKY01', 'name_unit' => 'Unit Kabupaten Bengkayang', 'code_subunit' => 'BKY01-BKY', 'name_subunit' => 'SubUnit Bengkayang'],
-            ['code_unit' => 'LDK01', 'name_unit' => 'Unit Kabupaten Landak', 'code_subunit' => 'LDK01-NGB', 'name_subunit' => 'SubUnit Ngabang'],
-            ['code_unit' => 'MPW01', 'name_unit' => 'Unit Kabupaten Mempawah', 'code_subunit' => 'MPW01-HIL', 'name_subunit' => 'SubUnit Mempawah Hilir'],
-            ['code_unit' => 'SGU01', 'name_unit' => 'Unit Kabupaten Sanggau', 'code_subunit' => 'SGU01-KPS', 'name_subunit' => 'SubUnit Kapuas'],
-            ['code_unit' => 'KTP01', 'name_unit' => 'Unit Kabupaten Ketapang', 'code_subunit' => 'KTP01-DPN', 'name_subunit' => 'SubUnit Delta Pawan'],
-            ['code_unit' => 'STG01', 'name_unit' => 'Unit Kabupaten Sintang', 'code_subunit' => 'STG01-STG', 'name_subunit' => 'SubUnit Sintang'],
-            ['code_unit' => 'KPH01', 'name_unit' => 'Unit Kabupaten Kapuas Hulu', 'code_subunit' => 'KPH01-PTU', 'name_subunit' => 'SubUnit Putussibau Utara'],
-            ['code_unit' => 'SKD01', 'name_unit' => 'Unit Kabupaten Sekadau', 'code_subunit' => 'SKD01-HIL', 'name_subunit' => 'SubUnit Sekadau Hilir'],
-            ['code_unit' => 'MLW01', 'name_unit' => 'Unit Kabupaten Melawi', 'code_subunit' => 'MLW01-NPH', 'name_subunit' => 'SubUnit Nanga Pinoh'],
-            ['code_unit' => 'KKU01', 'name_unit' => 'Unit Kabupaten Kayong Utara', 'code_subunit' => 'KKU01-SKD', 'name_subunit' => 'SubUnit Sukadana'],
-            ['code_unit' => 'KRY01', 'name_unit' => 'Unit Kabupaten Kubu Raya', 'code_subunit' => 'KRY01-SRY', 'name_subunit' => 'SubUnit Sungai Raya'],
+            ['code' => 'PNK01', 'name' => 'Unit Kota Pontianak'],
+            ['code' => 'MPW01', 'name' => 'Unit Kabupaten Mempawah'],
+            ['code' => 'SBS01', 'name' => 'Unit Kabupaten Sambas'],
+            ['code' => 'KRY01', 'name' => 'Unit Kabupaten Kubu Raya'], // Unit ini akan punya subunit
+            ['code' => 'STG01', 'name' => 'Unit Kabupaten Sintang'],
+            ['code' => 'KTP01', 'name' => 'Unit Kabupaten Ketapang'],
+            ['code' => 'MLW01', 'name' => 'Unit Kabupaten Melawi'],
+            ['code' => 'BKY01', 'name' => 'Unit Kabupaten Bengkayang'],
+            ['code' => 'SKD01', 'name' => 'Unit Kabupaten Sekadau'],
+            ['code' => 'SGU01', 'name' => 'Unit Kabupaten Sanggau'],
+            ['code' => 'KYU01', 'name' => 'Unit Kabupaten Kayong Utara'],
+            ['code' => 'KPH01', 'name' => 'Unit Kabupaten Kapuas Hulu'],
+            ['code' => 'LDK01', 'name' => 'Unit Kabupaten Landak'],
+            ['code' => 'SKW01', 'name' => 'Unit Kota Singkawang'],
         ];
 
-        foreach ($unitsData as $unitEntry) {
-            $unit = Region::firstOrCreate(
-                ['code' => $unitEntry['code_unit']],
+        // 3. Buat Semua Region Unit
+        // Melakukan iterasi untuk membuat atau memperbarui setiap UNIT di bawah CABANG.
+        foreach ($unitsData as $unitData) {
+            Region::firstOrCreate(
+                ['code' => $unitData['code']],
                 [
-                    'name' => $unitEntry['name_unit'],
+                    'name' => $unitData['name'],
                     'type' => 'UNIT',
                     'parent_id' => $cabangKalbar->id,
                     'status' => 'ACTIVE',
                 ]
             );
-
-            if ($unit) {
-                Region::firstOrCreate(
-                    ['code' => $unitEntry['code_subunit']],
-                    [
-                        'name' => $unitEntry['name_subunit'],
-                        'type' => 'SUBUNIT',
-                        'parent_id' => $unit->id,
-                        'status' => 'ACTIVE',
-                    ]
-                );
-            }
         }
-        $this->command->info('RegionSeeder (versi lengkap) disinkronkan.');
+
+        // 4. Buat Region SubUnit Spesifik (Hanya untuk Kubu Raya)
+        // Setelah semua unit dibuat, cari unit Kubu Raya untuk menambahkan subunit di bawahnya.
+        $unitKubuRaya = Region::where('code', 'KRY01')->first();
+
+        // Pastikan Unit Kubu Raya ada sebelum membuat SubUnit di bawahnya.
+        if ($unitKubuRaya) {
+            Region::firstOrCreate(
+                ['code' => 'KRY01-SRY'], // Kode subunit spesifik
+                [
+                    'name' => 'SubUnit Sungai Raya', // Nama subunit spesifik
+                    'type' => 'SUBUNIT',
+                    'parent_id' => $unitKubuRaya->id, // Parent-nya adalah Unit Kubu Raya
+                    'status' => 'ACTIVE',
+                ]
+            );
+        }
+
+        $this->command->info('RegionSeeder berhasil dijalankan sesuai struktur yang benar.');
     }
 }

@@ -19,6 +19,7 @@ public function run(): void
         UserSeeder::class,
         CustomerSeeder::class,
         ReferrerSeeder::class,
+        KaryawanSeeder::class,
         PomigorDepotSeeder::class,
         PomigorStockMovementSeeder::class,
         LoanApplicationSeeder::class,
