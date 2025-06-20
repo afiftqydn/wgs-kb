@@ -28,12 +28,9 @@ class UserSeeder extends Seeder
         $roleAdminSubUnit = Role::where('name', 'Admin SubUnit')->first();
         $roleKepalaSubUnit = Role::where('name', 'Kepala SubUnit')->first();
 
-        // --- 2. Ambil Informasi Wilayah (Regions) yang Sudah Ada ---
-        // Memastikan region yang spesifik seperti Cabang Kalbar atau unit/subunit tertentu tersedia.
-        // Hanya subunit Sungai Raya (Kubu Raya) yang akan dicari karena hanya itu yang memiliki subunit.
         $regionCabangKalbar = Region::where('code', 'KB00')->first();
         $unitKubuRaya = Region::where('code', 'KRY01')->first();
-        $subunitSry = Region::where('code', 'KRY01-SRY')->first(); // Subunit spesifik untuk Kubu Raya (Sungai Raya)
+        $subunitSry = Region::where('code', 'KRY01-SRY')->first(); 
 
         // --- 3. Buat Pengguna Global (Global Users) ---
         // Pengguna ini tidak terikat pada region tertentu (region_id = null).
@@ -57,7 +54,7 @@ class UserSeeder extends Seeder
                 [
                     'name' => 'Manager Keuangan',
                     'password' => Hash::make('password123'),
-                    'region_id' => null, // Peran ini bersifat global, tidak terikat wilayah
+                    'region_id' => null, 
                     'wgs_job_title' => 'Manager Keuangan',
                     'wgs_level' => 'GLOBAL',
                     'email_verified_at' => now(),
@@ -121,7 +118,7 @@ class UserSeeder extends Seeder
             ['name' => 'Bengkayang', 'code' => 'BKY01'],
             ['name' => 'Sekadau', 'code' => 'SKD01'],
             ['name' => 'Sanggau', 'code' => 'SGU01'],
-            ['name' => 'Kayong Utara', 'code' => 'KYU01'],
+            ['name' => 'Kayong Utara', 'code' => 'KKU01'],
             ['name' => 'Kapuas Hulu', 'code' => 'KPH01'],
             ['name' => 'Landak', 'code' => 'LDK01'],
             ['name' => 'Singkawang', 'code' => 'SKW01'],
@@ -186,16 +183,11 @@ class UserSeeder extends Seeder
             }
         }
 
-        // --- 7. Buat Pengguna SubUnit (SubUnit Users) ---
-        // Bagian ini HANYA untuk subunit spesifik yang memang ada, yaitu Sungai Raya (Kubu Raya).
-        // Kabupaten/kota lain TIDAK memiliki subunit.
-
-        // SubUnit Sungai Raya (di bawah Unit Kubu Raya)
         if ($roleAdminSubUnit && $subunitSry) {
             User::firstOrCreate(
-                ['email' => 'admin.subunit.sry@wgs.com'],
+                ['email' => 'admin.subunit.ptkkota@wgs.com'],
                 [
-                    'name' => 'Admin SubUnit Sungai Raya',
+                    'name' => 'Admin SubUnit Pontianak Kota',
                     'password' => Hash::make('password123'),
                     'region_id' => $subunitSry->id,
                     'wgs_job_title' => 'Admin SubUnit Sungai Raya',

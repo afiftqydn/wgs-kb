@@ -45,7 +45,7 @@ class CustomerSeeder extends Seeder
 
 
         // --- DATA CUSTOMER BARU UNTUK UJI WILAYAH KUBU RAYA ---
-        $creatorKubuRaya = User::where('email', 'admin.subunit.sry@wgs.com')->first();
+        $creatorKubuRaya = User::where('email', 'kasubunit.sry@wgs.com')->first();
         $regionKubuRaya = Region::where('code', 'KRY01-SRY')->first();
 
         if ($creatorKubuRaya && $regionKubuRaya) {

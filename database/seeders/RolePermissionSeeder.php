@@ -11,12 +11,8 @@ class RolePermissionSeeder extends Seeder
 {
     public function run(): void
     {
-        // 1. Reset cache permission
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
-        // 2. Definisikan dan Buat Semua Permission menggunakan konvensi Filament Shield
-        // Jalankan `php artisan shield:generate --all` untuk membuat ini secara otomatis,
-        // atau definisikan manual seperti di bawah ini untuk kontrol penuh di seeder.
         $permissions = [
             'access_admin_panel',
             'view_any_user', 'create_user', 'update_user', 'delete_user',

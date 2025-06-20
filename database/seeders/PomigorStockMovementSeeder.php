@@ -8,15 +8,14 @@ use App\Models\PomigorDepot;
 use Illuminate\Support\Carbon;
 use Illuminate\Database\Seeder;
 use App\Models\PomigorStockMovement;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
 class PomigorStockMovementSeeder extends Seeder
 {
     public function run(): void
     {
-        // Cari depot berdasarkan nama dan region_id karena depot_code di-generate otomatis
+        // Cari depot berdasarkan nama dan region_id
         $unitPontianak = Region::where('code', 'PNK01')->where('type', 'UNIT')->first();
-        $unitKubuRaya = Region::where('code', 'KRY01')->where('type', 'UNIT')->first();
+        $unitKubuRaya = Region::where('code', 'KRY01')->where('type', 'UNIT')->first(); // <-- Perbaikan kode wilayah
 
         $depotPnk01 = null;
         if ($unitPontianak) {
@@ -26,7 +25,7 @@ class PomigorStockMovementSeeder extends Seeder
         }
         
         $depotKry01 = null;
-        if($unitKubuRaya){
+        if ($unitKubuRaya) {
             $depotKry01 = PomigorDepot::where('name', 'Depot POMIGOR Sungai Raya 01')
                                     ->where('region_id', $unitKubuRaya->id)
                                     ->first();
@@ -35,7 +34,7 @@ class PomigorStockMovementSeeder extends Seeder
         $adminUnitPnk = User::where('email', 'admin.pontianak@wgs.com')->first();
         $adminUnitKry = User::where('email', 'admin.kuburaya@wgs.com')->first();
 
-
+        // Pergerakan untuk Depot Pontianak 01
         if ($depotPnk01 && $adminUnitPnk) {
             PomigorStockMovement::create([
                 'pomigor_depot_id' => $depotPnk01->id, 'transaction_type' => 'REFILL',
@@ -51,6 +50,7 @@ class PomigorStockMovementSeeder extends Seeder
              $this->command->warn('Depot Pontianak atau Admin Pontianak tidak ditemukan untuk PomigorStockMovementSeeder.');
         }
 
+        // Pergerakan untuk Depot Kubu Raya 01
         if ($depotKry01 && $adminUnitKry) {
              PomigorStockMovement::create([
                 'pomigor_depot_id' => $depotKry01->id, 'transaction_type' => 'REFILL',
