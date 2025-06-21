@@ -52,8 +52,46 @@ class LoanApplicationResource extends Resource
                                 ->label('Nomor Permohonan')->disabled()
                                 ->helperText('Akan ter-generate otomatis setelah disimpan.'),
                             Select::make('customer_id')
-                                ->label('Nasabah')->relationship('customer', 'name')
-                                ->searchable()->preload()->required()
+                               ->label('Nasabah')
+                                ->relationship(
+                                    name: 'customer', 
+                                    titleAttribute: 'name',
+                                    // Tambahkan closure ini untuk memodifikasi query dropdown
+                                    modifyQueryUsing: function (Builder $query) {
+                                        $user = auth()->user();
+
+                                        // Jika bukan peran global, terapkan filter wilayah
+                                        if (!$user->hasRole(['Tim IT', 'Kepala Cabang', 'Analis Cabang', 'Admin Cabang'])) {
+
+                                            // Jika peran level UNIT
+                                            if ($user->hasAnyRole(['Kepala Unit', 'Analis Unit', 'Admin Unit'])) {
+                                                if ($user->region_id) {
+                                                    $childSubUnitIds = Region::where('parent_id', $user->region_id)->pluck('id');
+                                                    $accessibleRegionIds = $childSubUnitIds->push($user->region_id);
+                                                    $query->whereIn('region_id', $accessibleRegionIds);
+                                                } else {
+                                                    $query->whereRaw('1 = 0'); // Jika user Unit tidak punya region, jangan tampilkan apa-apa
+                                                }
+                                            }
+                                            // Jika peran level SUBUNIT
+                                            elseif ($user->hasAnyRole(['Kepala SubUnit', 'Admin SubUnit'])) {
+                                                if ($user->region_id) {
+                                                    $query->where('region_id', $user->region_id);
+                                                } else {
+                                                    $query->whereRaw('1 = 0');
+                                                }
+                                            }
+                                            else {
+                                                // Untuk peran lain yang tidak terdefinisi, jangan tampilkan nasabah
+                                                 $query->whereRaw('1 = 0');
+                                            }
+                                        }
+                                        // Untuk peran global, tidak ada filter yang diterapkan, jadi semua nasabah akan tampil
+                                    }
+                                )
+                                ->searchable()
+                                ->preload()
+                                ->required()
                                 ->createOptionForm(CustomerResource::getCreationFormSchema())
                                 ->createOptionAction(fn (Forms\Components\Actions\Action $action) => $action->modalWidth('5xl')),
                             Select::make('product_type_id')
@@ -212,4 +250,10 @@ class LoanApplicationResource extends Resource
             'edit' => Pages\EditLoanApplication::route('/{record}/edit'),
         ];
     }    
+    protected function getRedirectUrl(): string
+    {
+        // Mengambil URL dari halaman 'index' (daftar/tabel) resource ini secara dinamis
+        return static::getResource()::getUrl('index');
+    }
+
 }

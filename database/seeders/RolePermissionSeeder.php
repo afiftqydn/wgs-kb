@@ -68,7 +68,15 @@ class RolePermissionSeeder extends Seeder
         $roleKepalaSubUnit->syncPermissions(['access_admin_panel', 'view_any_customer', 'view_customer', 'view_any_loan::application', 'view_loan::application']);
 
         // Level Unit
-        $roleAdminUnit->syncPermissions(['access_admin_panel', 'view_any_loan::application', 'view_loan::application', 'update_loan::application', 'view_any_customer', 'create_customer', 'update_customer', 'delete_customer', 'view_any_pomigor::depot', 'create_pomigor::depot', 'update_pomigor::depot']);
+        $roleAdminUnit->syncPermissions([
+            'access_admin_panel',
+            'view_any_loan::application',
+            'view_loan::application',
+            'create_loan::application', // <-- TAMBAHKAN PERMISSION INI
+            'update_loan::application',
+            'view_any_customer', 'create_customer', 'update_customer', 'delete_customer',
+            'view_any_pomigor::depot', 'create_pomigor::depot', 'update_pomigor::depot',
+        ]);
         $roleAnalisUnit->syncPermissions(['access_admin_panel', 'view_any_loan::application', 'view_loan::application', 'update_loan::application', 'view_any_customer', 'view_any_pomigor::depot']);
         $roleKepalaUnit->syncPermissions(['access_admin_panel', 'view_any_loan::application', 'view_loan::application', 'update_loan::application', 'view_report::generator::page', 'view_any_customer', 'view_any_pomigor::depot', 'view_any_user']);
 
