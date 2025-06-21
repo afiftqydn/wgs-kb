@@ -11,22 +11,37 @@ class RolePermissionSeeder extends Seeder
 {
     public function run(): void
     {
+        // 1. Reset cache permission
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
+        // 2. Definisikan dan Buat Semua Permission yang Dibutuhkan Aplikasi
+        // Dengan daftar ini, Anda tidak perlu lagi menjalankan `shield:generate`
         $permissions = [
             'access_admin_panel',
-            'view_any_user', 'create_user', 'update_user', 'delete_user',
-            'view_any_shield::role', 'update_shield::role', 'view_any_karyawan', 'create_karyawan', 'update_karyawan','delete_karyawan',
-            'view_any_region', 'create_region', 'update_region', 'delete_region',
-            'view_any_product::type', 'create_product::type', 'update_product::type', 'delete_product::type',
-            'view_any_customer', 'create_customer', 'update_customer', 'delete_customer',
-            'view_any_referrer', 'create_referrer', 'update_referrer', 'delete_referrer',
-            'view_any_loan::application', 'create_loan::application', 'update_loan::application', 'delete_loan::application','view_loan::application',
-            'view_any_pomigor::depot', 'create_pomigor::depot', 'update_pomigor::depot', 'delete_pomigor::depot',
+            // User Resource Permissions
+            'view_any_user', 'view_user', 'create_user', 'update_user', 'delete_user',
+            // Shield Role Resource Permissions
+            'view_any_shield::role', 'view_shield::role', 'create_shield::role', 'update_shield::role', 'delete_shield::role',
+            // Region Resource Permissions
+            'view_any_region', 'view_region', 'create_region', 'update_region', 'delete_region',
+            // ProductType Resource Permissions
+            'view_any_product::type', 'view_product::type', 'create_product::type', 'update_product::type', 'delete_product::type',
+            // Customer Resource Permissions
+            'view_any_customer', 'view_customer', 'create_customer', 'update_customer', 'delete_customer',
+            // Referrer Resource Permissions
+            'view_any_referrer', 'view_referrer', 'create_referrer', 'update_referrer', 'delete_referrer',
+            // LoanApplication Resource Permissions
+            'view_any_loan::application', 'view_loan::application', 'create_loan::application', 'update_loan::application', 'delete_loan::application',
+            // Arsip
+            'view_any_arsip', 'view_arsip', 'create_arsip', 'update_arsip', 'delete_arsip',
+            // PomigorDepot Resource Permissions
+            'view_any_pomigor::depot', 'view_pomigor::depot', 'create_pomigor::depot', 'update_pomigor::depot', 'delete_pomigor::depot',
+            // ActivityLog Resource Permission
             'view_any_activity::log',
+            // Custom Page Permissions
             'view_report::generator::page',
-            'view_any_arsip', 'create_arsip', 'update_arsip', 'delete_arsip',
         ];
+
         foreach ($permissions as $permission) {
             Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'web']);
         }
@@ -42,33 +57,30 @@ class RolePermissionSeeder extends Seeder
         $roleAdminUnit = Role::firstOrCreate(['name' => 'Admin Unit']);
         $roleKepalaSubUnit = Role::firstOrCreate(['name' => 'Kepala SubUnit']);
         $roleAdminSubUnit = Role::firstOrCreate(['name' => 'Admin SubUnit']);
-        // 4. Tugaskan Permissions ke Roles
         
-        // Super Admin
+        // 4. Tugaskan Permissions ke Roles (Sesuai Matriks Peran) 
+        
+        // Super Admin -> bisa melakukan segalanya
         $roleTimIT->syncPermissions(Permission::all());
 
         // Level SubUnit
-        $roleAdminSubUnit->syncPermissions(['access_admin_panel', 'create_customer', 'view_any_customer', 'create_loan::application', 'view_any_loan::application']);
-        $roleKepalaSubUnit->syncPermissions(['access_admin_panel', 'view_any_customer', 'view_any_loan::application']);
+        $roleAdminSubUnit->syncPermissions(['access_admin_panel', 'create_customer', 'view_any_customer', 'view_customer', 'create_loan::application', 'view_any_loan::application', 'view_loan::application']);
+        $roleKepalaSubUnit->syncPermissions(['access_admin_panel', 'view_any_customer', 'view_customer', 'view_any_loan::application', 'view_loan::application']);
 
         // Level Unit
-        $roleAdminUnit->syncPermissions(['access_admin_panel', 'view_any_loan::application', 'update_loan::application','view_loan::application', 'create_loan::application', 'view_any_customer', 'create_customer', 'update_customer', 'delete_customer', 'view_any_pomigor::depot', 'create_pomigor::depot', 'update_pomigor::depot']);
-        $roleAnalisUnit->syncPermissions(['access_admin_panel','view_loan::application', 'view_any_loan::application', 'update_loan::application', 'view_any_customer', 'view_any_pomigor::depot']);
-        $roleKepalaUnit->syncPermissions(['access_admin_panel', 'view_any_loan::application','view_loan::application', 'update_loan::application', 'view_any_customer', 'view_any_pomigor::depot', 'view_report::generator::page']);
+        $roleAdminUnit->syncPermissions(['access_admin_panel', 'view_any_loan::application', 'view_loan::application', 'update_loan::application', 'view_any_customer', 'create_customer', 'update_customer', 'delete_customer', 'view_any_pomigor::depot', 'create_pomigor::depot', 'update_pomigor::depot']);
+        $roleAnalisUnit->syncPermissions(['access_admin_panel', 'view_any_loan::application', 'view_loan::application', 'update_loan::application', 'view_any_customer', 'view_any_pomigor::depot']);
+        $roleKepalaUnit->syncPermissions(['access_admin_panel', 'view_any_loan::application', 'view_loan::application', 'update_loan::application', 'view_report::generator::page', 'view_any_customer', 'view_any_pomigor::depot', 'view_any_user']);
 
         // Level Cabang
-        $roleAdminCabang->syncPermissions(['access_admin_panel', 'view_any_user', 'create_user', 'update_user', 'view_any_shield::role', 'update_shield::role', 'view_any_region', 'create_region', 'update_region', 'view_any_product::type', 'create_product::type', 'update_product::type', 'view_any_referrer', 'create_referrer', 'update_referrer','view_loan::application', 'create_loan::application', 'update_loan::application']);
-        $roleAnalisCabang->syncPermissions(['access_admin_panel', 'view_any_loan::application', 'view_any_customer', 'view_any_pomigor::depot', 'view_report::generator::page','view_loan::application']);
-        $roleKepalaCabang->syncPermissions(['access_admin_panel', 'view_any_loan::application', 'update_loan::application', 'view_any_customer', 'view_any_pomigor::depot', 'view_report::generator::page', 'view_any_user', 'view_loan::application']);
-        $roleManagerKeuangan->syncPermissions([
-            'access_admin_panel',
-            'view_any_karyawan',
-            'create_karyawan',
-            'update_karyawan',
-            'delete_karyawan',
-            'view_any_shield::role', 
-        ]);
+        $roleAdminCabang->syncPermissions(['access_admin_panel', 'view_any_user', 'create_user', 'update_user', 'view_any_shield::role', 'update_shield::role', 'view_any_region', 'create_region', 'update_region', 'view_any_product::type', 'create_product::type', 'update_product::type', 'view_any_referrer', 'create_referrer', 'update_referrer']);
+        $roleAnalisCabang->syncPermissions(['access_admin_panel', 'view_any_loan::application', 'view_any_customer', 'view_any_pomigor::depot', 'view_report::generator::page']);
+        $roleKepalaCabang->syncPermissions(['access_admin_panel', 'view_any_loan::application', 'update_loan::application', 'view_any_customer', 'view_any_pomigor::depot', 'view_report::generator::page', 'view_any_user']);
         
-        $this->command->info('RolePermissionSeeder dengan skema lengkap berhasil dijalankan.');
+        // Peran Global Lainnya
+        $roleManagerKeuangan->syncPermissions(['access_admin_panel', 'view_any_user', 'view_user', 'create_user', 'update_user', 'delete_user', 'view_any_shield::role']);
+
+        $this->command->info('RolePermissionSeeder dengan skema lengkap dan mandiri berhasil dijalankan.');
     }
 }
+            

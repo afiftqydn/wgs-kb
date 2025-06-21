@@ -23,6 +23,7 @@ public function run(): void
         PomigorDepotSeeder::class,
         PomigorStockMovementSeeder::class,
         LoanApplicationSeeder::class,
+        ArsipSeeder::class
     ]);
 }
 }
