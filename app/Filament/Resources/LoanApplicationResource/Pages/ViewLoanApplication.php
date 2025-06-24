@@ -137,7 +137,7 @@ class ViewLoanApplication extends ViewRecord
 
             // --- AKSI UNTUK KEPALA UNIT & KEPALA CABANG ---
             Actions\Action::make('markAsReviewedByKepalaUnit')
-                ->label('Tandai Sudah Direview')->icon('heroicon-o-eye')->color('gray')
+                ->label('Tandai Sudah Direview')->icon('heroicon-o-check-circle')->color('info')
                 ->visible(fn (): bool => in_array($record->status, ['APPROVED', 'REJECTED']) && $record->assigned_to === $user->id && $user->hasRole('Kepala Unit'))
                 ->requiresConfirmation()->modalButton('Ya, Tandai Sudah Direview')
                 ->form([ Textarea::make('workflow_notes_kepala_unit_review')->label('Catatan Review (Opsional)')->nullable() ])

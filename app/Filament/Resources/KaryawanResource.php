@@ -175,54 +175,86 @@ class KaryawanResource extends Resource
     {
         return $table
             ->columns([
-                ImageColumn::make('pas_foto')
+                // [PENINGKATAN] Foto tetap, tapi ukurannya diatur agar konsisten.
+                Tables\Columns\ImageColumn::make('pas_foto')
                     ->label('Foto')
-                    ->circular(),
-                TextColumn::make('nama_lengkap')
-                    ->label('Nama Karyawan')
-                    ->searchable()
+                    ->circular()
+                    ->size(50), // Ukuran standar yang baik (40px)
+
+                // [PENINGKATAN] Menggabungkan Nama dan Jabatan untuk tampilan yang lebih ringkas dan modern.
+                // Nama dibuat menonjol, dan jabatan sebagai deskripsi di bawahnya.
+                Tables\Columns\TextColumn::make('nama_lengkap')
+                    ->label('Nama & Jabatan')
+                    ->description(fn (Karyawan $record): string => $record->jabatan)
+                    ->searchable(['nama_lengkap', 'jabatan']) // Pencarian bisa untuk nama & jabatan
                     ->sortable(),
-                TextColumn::make('jabatan')
-                    ->searchable()
-                    ->sortable(),
-                // [PERBAIKAN] Menggunakan TextColumn dengan ->badge()
-                TextColumn::make('status_karyawan')
+
+                // [PENINGKATAN] Menggunakan BadgeColumn yang memang dibuat khusus untuk ini.
+                Tables\Columns\BadgeColumn::make('status_karyawan')
                     ->label('Status')
-                    ->badge() // Menjadikan kolom ini sebagai badge
                     ->colors([
                         'success' => 'Tetap/PKWTT',
                         'warning' => 'Kontrak/PKWT',
                         'info' => 'Magang',
-                        'gray' => 'Harian',
+                        'gray' => 'Harian', // 'secondary' untuk warna abu-abu
                     ])
                     ->searchable(),
-                TextColumn::make('region.name')
+
+                // [PENINGKATAN] Kolom Kantor dengan ikon untuk petunjuk visual.
+                Tables\Columns\TextColumn::make('region.name')
                     ->label('Kantor')
+                    ->badge()
+                    ->icon('heroicon-o-building-office')
                     ->searchable()
                     ->sortable(),
-                TextColumn::make('no_hp')
+
+                // [PENINGKATAN] No. HP yang interaktif: bisa di-klik untuk menelepon dan bisa disalin.
+                Tables\Columns\TextColumn::make('no_hp')
                     ->label('No. HP')
-                    ->searchable(),
-                TextColumn::make('created_at')
-                    ->dateTime('d M Y')
+                    ->icon('heroicon-o-phone')
+                    ->searchable()
+                    ->copyable() // Menambahkan tombol untuk menyalin nomor
+                    ->copyMessage('No. HP disalin!')
+                    ->url(fn (Karyawan $record): ?string => $record->no_hp ? "tel:{$record->no_hp}" : null)
+                    ->toggleable(isToggledHiddenByDefault: false), // Ditampilkan secara default
+
+                // Kolom ini disembunyikan by default, bagus untuk info tambahan.
+                Tables\Columns\TextColumn::make('created_at')
+                    ->label('Tanggal Dibuat')
+                    ->dateTime('d M Y H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                // [PENINGKATAN] Filter interaktif berdasarkan status karyawan.
+                Tables\Filters\SelectFilter::make('status_karyawan')
+                    ->label('Filter Status')
+                    ->options([
+                        'Tetap/PKWTT' => 'Tetap/PKWTT',
+                        'Kontrak/PKWT' => 'Kontrak/PKWT',
+                        'Magang' => 'Magang',
+                        'Harian' => 'Harian',
+                    ]),
+                // [PENINGKATAN] Filter interaktif berdasarkan kantor/wilayah.
+                Tables\Filters\SelectFilter::make('region_id')
+                    ->label('Filter Kantor')
+                    ->relationship('region', 'name')
+                    ->searchable()
+                    ->preload(),
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                // [PENINGKATAN] Mengelompokkan aksi dalam dropdown (ActionGroup) agar baris lebih rapi.
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\ViewAction::make()->color('gray'), // Warna netral untuk lihat
+                    Tables\Actions\EditAction::make()->color('warning'),   // Warna kuning untuk edit
+                    Tables\Actions\DeleteAction::make(),                   // Defaultnya sudah merah (danger)
+                ]),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
-            ])
-            // [PERBAIKAN & PENYEDERHANAAN] Memanggil fungsi terpusat untuk menerapkan filter
-            ->modifyQueryUsing(fn (Builder $query) => static::applyRegionScope($query));
+            ]);
     }
 
     public static function getRelations(): array
