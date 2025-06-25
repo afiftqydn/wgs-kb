@@ -142,7 +142,7 @@ class ArsipResource extends Resource
                     ->icon(fn (string $state): string => match ($state) {
                         'Aktif' => 'heroicon-o-check-circle',
                         'Tidak Aktif' => 'heroicon-o-x-circle',
-                        'Dalam Peminjaman' => 'heroicon-o-arrow-uturn-left-circle',
+                        'Dalam Peminjaman' => 'heroicon-o-credit-card',
                         'Sudah Dimusnahkan' => 'heroicon-o-trash',
                         default => 'heroicon-o-question-mark-circle',
                     })

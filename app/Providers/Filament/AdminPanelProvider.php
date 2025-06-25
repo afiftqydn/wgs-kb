@@ -34,8 +34,11 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login(AppCustomLoginPage::class) 
             ->brandLogo(asset('images/Logo.png'))
-            ->brandLogoHeight('64px') // 
-
+            ->brandLogoHeight('63px') // 
+            ->spa()
+            
+            ->topNavigation()
+            // ->sidebarWidth('20rem')
             ->navigationGroups([
                     'Manajemen Pengajuan',
                     'Data Master',
