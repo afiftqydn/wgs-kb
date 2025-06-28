@@ -83,7 +83,7 @@ class RolePermissionSeeder extends Seeder
         // Level Cabang
         $roleAdminCabang->syncPermissions(['access_admin_panel', 'view_any_user', 'create_user', 'update_user', 'view_any_shield::role', 'update_shield::role', 'view_any_region', 'create_region', 'update_region', 'view_any_product::type', 'create_product::type', 'update_product::type', 'view_any_referrer', 'create_referrer', 'update_referrer']);
         $roleAnalisCabang->syncPermissions(['access_admin_panel', 'view_any_loan::application', 'view_any_customer', 'view_any_pomigor::depot', 'view_report::generator::page']);
-        $roleKepalaCabang->syncPermissions(['access_admin_panel', 'view_any_loan::application', 'update_loan::application', 'view_any_customer', 'view_any_pomigor::depot', 'view_report::generator::page', 'view_any_user']);
+        $roleKepalaCabang->syncPermissions(['access_admin_panel', 'view_any_loan::application', 'view_loan::application', 'update_loan::application', 'view_any_customer', 'view_any_pomigor::depot', 'view_report::generator::page', 'view_any_user']);
         
         // Peran Global Lainnya
         $roleManagerKeuangan->syncPermissions(['access_admin_panel', 'view_any_user', 'view_user', 'create_user', 'update_user', 'delete_user', 'view_any_shield::role']);

@@ -37,8 +37,8 @@ class AdminPanelProvider extends PanelProvider
             ->brandLogoHeight('63px') // 
             ->spa()
             
-            ->topNavigation()
-            // ->sidebarWidth('20rem')
+            // ->topNavigation()
+            ->sidebarWidth('20rem')
             ->navigationGroups([
                     'Manajemen Pengajuan',
                     'Data Master',
