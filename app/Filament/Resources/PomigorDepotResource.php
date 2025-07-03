@@ -48,9 +48,8 @@ class PomigorDepotResource extends Resource
                         TextInput::make('depot_code')
                             ->label('Kode Depot')
                             ->maxLength(255)
-                            ->disabled() // Dinonaktifkan karena di-generate otomatis
-                            ->dehydrated(false) // Jangan kirim nilai ini saat 'create' karena di-generate model
-                                               // Saat 'edit', nilai yang ada akan ditampilkan tapi tetap disabled
+                            ->disabled()
+                            ->dehydrated(false) 
                             ->placeholder('Akan digenerate otomatis saat pembuatan')
                             ->columnSpanFull(), 
                         TextInput::make('name')
@@ -71,7 +70,7 @@ class PomigorDepotResource extends Resource
                             ->searchable()
                             ->preload()
                             ->required()
-                            ->createOptionForm(CustomerResource::getCreationFormSchema()) // Menggunakan skema dari CustomerResource
+                            ->createOptionForm(CustomerResource::getCreationFormSchema()) 
                             ->createOptionAction(fn (Forms\Components\Actions\Action $action) => $action->modalWidth('5xl'))
                             ->helperText('Pilih nasabah WGS yang menjadi pengurus depot ini.'),
                         Textarea::make('address')
@@ -95,7 +94,7 @@ class PomigorDepotResource extends Resource
                         TextInput::make('current_stock_liters')
                             ->label('Stok Saat Ini (Liter)')
                             ->numeric()
-                            ->disabled() // Stok diisi otomatis oleh pergerakan stok via Observer
+                            ->disabled() 
                             ->default(0)
                             ->formatStateUsing(fn (?string $state): string => number_format(floatval($state), 2, ',', '.')) // Format tampilan
                             ->helperText('Stok akan terupdate otomatis berdasarkan histori pergerakan.'),
@@ -108,7 +107,6 @@ class PomigorDepotResource extends Resource
                             ])
                             ->default('ACTIVE')
                             ->required(),
-                        // created_by akan diisi otomatis oleh model event PomigorDepot
                     ]),
             ]);
     }
@@ -172,7 +170,7 @@ class PomigorDepotResource extends Resource
         return [
             'index' => Pages\ListPomigorDepots::route('/'),
             'create' => Pages\CreatePomigorDepot::route('/create'),
-            'view' => Pages\ViewPomigorDepot::route('/{record}'), // Pastikan file ViewPomigorDepot.php sudah dibuat
+            'view' => Pages\ViewPomigorDepot::route('/{record}'),
             'edit' => Pages\EditPomigorDepot::route('/{record}/edit'),
         ];
     }    

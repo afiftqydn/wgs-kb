@@ -2,45 +2,53 @@
 
 namespace App\Filament\Pages\Auth;
 
+use Filament\Facades\Filament;
+use Filament\Forms\Components\Component;
+use Filament\Forms\Components\TextInput;
 use Filament\Pages\Auth\Login as BaseLogin;
+use Illuminate\Auth\Events\Login as LoginEvent;
 use Illuminate\Contracts\Support\Htmlable;
-use Illuminate\Support\HtmlString;
+use Filament\Http\Responses\Auth\Contracts\LoginResponse;
 
 class LoginPage extends BaseLogin
 {
-    /**
-     * Menampilkan logo custom di halaman login.
-     */
-    // protected function getBrandLogo(): ?Htmlable
-    // {
-    //     // Mengembalikan view sebagai Htmlable (HtmlString)
-    //     return new HtmlString(view('filament.auth.custom_login_brand')->render());
-    // }
-
-    /**
-     * Menampilkan heading pada halaman login.
-     * Anda bisa kosongkan atau ganti teksnya sesuai kebutuhan.
-     */
     public function getHeading(): string | Htmlable
     {
-        // Kosongkan heading
         return "Assalamu'alaikum";
-
-        // Atau ubah teks heading seperti contoh berikut:
-        // return 'Selamat Datang di Aplikasi WGS';
     }
 
     public function getSubheading(): string | Htmlable | null
-{
-    return 'Masukkan akun Anda untuk melanjutkan.';
-}
+    {
+        return 'Masukkan akun Anda untuk melanjutkan.';
+    }
     
-
+    // ... sisa kode Anda (getForms, getEmailFormComponent) tetap sama ...
     /**
-     * (Opsional) Menampilkan subheading di halaman login.
+     * Menambahkan branding kustom di bawah form.
      */
-    // public function getSubheading(): string | Htmlable | null
-    // {
-    //     return 'Silakan masuk untuk melanjutkan.';
-    // }
+    protected function getForms(): array
+    {
+        return [
+            'form' => $this->form(
+                $this->makeForm()
+                    ->schema([
+                        $this->getEmailFormComponent(),
+                        $this->getPasswordFormComponent(),
+                        $this->getRememberFormComponent(),
+                    ])
+                    ->statePath('data'),
+            ),
+        ];
+    }
+    
+    protected function getEmailFormComponent(): Component
+    {
+        return TextInput::make('email')
+            ->label('Alamat Email')
+            ->email()
+            ->required()
+            ->autocomplete()
+            ->autofocus()
+            ->extraInputAttributes(['tabindex' => 1]);
+    }
 }

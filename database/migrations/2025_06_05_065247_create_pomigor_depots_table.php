@@ -25,6 +25,7 @@ return new class extends Migration
             $table->foreignId('customer_id') // ID dari Nasabah WGS yang menjadi pengurus/pemilik depot
                   ->constrained('customers') // Merujuk ke tabel 'customers'
                   ->onUpdate('cascade')
+                  ->nullable()
                   ->onDelete('restrict'); // Jika Nasabah pengurus dihapus, perlu penanganan khusus (mungkin tidak boleh dihapus jika masih ada depot aktif)
 
             $table->text('address'); // Alamat lengkap depot
@@ -52,3 +53,4 @@ return new class extends Migration
         Schema::dropIfExists('pomigor_depots');
     }
 };
+

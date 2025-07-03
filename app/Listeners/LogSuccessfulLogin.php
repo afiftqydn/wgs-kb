@@ -2,35 +2,43 @@
 
 namespace App\Listeners;
 
-use Illuminate\Auth\Events\Login;
-use Illuminate\Contracts\Queue\ShouldQueue; 
-use Illuminate\Queue\InteractsWithQueue;   
-use Spatie\Activitylog\Facades\Activity;
 use App\Models\User;
+use Illuminate\Auth\Events\Login;
+// `activity()` adalah helper global, jadi tidak perlu di-import secara spesifik.
 
-class LogSuccessfulLogin implements ShouldQueue // <-- IMPLEMENTASIKAN ShouldQueue
+class LogSuccessfulLogin
 {
-    use InteractsWithQueue; // <-- GUNAKAN TRAIT INI
-
+    /**
+     * Create the event listener.
+     *
+     * @return void
+     */
     public function __construct()
     {
-        //
+        // Constructor bisa dikosongkan
     }
 
+    /**
+     * Handle the user login event.
+     *
+     * @param  \Illuminate\Auth\Events\Login  $event
+     * @return void
+     */
     public function handle(Login $event): void
     {
-        // dd($event->user, get_class($event->user)); // Hapus dd() jika masih ada
-
-        if ($event->user && $event->user instanceof User) {
+        if ($event->user instanceof User) {
+            /** @var \App\Models\User $user */
             $user = $event->user;
 
-            Activity::log("Pengguna '{$user->name}' (ID: {$user->id}, Email: {$user->email}) berhasil login.")
-                ->causedBy($user)
-                ->performedOn($user)
-                ->log('Authentication:Login');
-        } else {
-            Activity::log("Sebuah event Login terjadi tanpa informasi pengguna yang jelas.")
-                ->log('Authentication:LoginAttempt');
+            // 1. Update waktu login terakhir
+            $user->last_login_at = now();
+            $user->save();
+
+            // 2. Catat aktivitas dengan cara yang benar
+            activity()
+               ->causedBy($user) // Siapa yang menyebabkan aktivitas ini
+               ->performedOn($user) // Aktivitas ini dilakukan terhadap siapa/apa
+               ->log("Pengguna '{$user->name}' (ID: {$user->id}) berhasil login."); // Deskripsi aktivitas
         }
     }
 }

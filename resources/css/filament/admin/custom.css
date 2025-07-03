@@ -1,0 +1,9 @@
+/* Sembunyikan header di dalam dropdown menu pengguna */
+.fi-user-menu-dropdown .fi-dropdown-header {
+    display: none;
+}
+
+/* Sembunyikan pemilih tema di dalam dropdown menu pengguna */
+.fi-user-menu-dropdown .fi-theme-switcher {
+    display: none;
+}

@@ -28,16 +28,16 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Wizard;
-use Filament\Notifications\Notification as FilamentNotification; // Untuk toast notifikasi
+use Filament\Notifications\Notification as FilamentNotification; 
 
 class LoanApplicationResource extends Resource
 {
     protected static ?string $model = LoanApplication::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-banknotes';
-    protected static ?string $navigationGroup = 'Manajemen Pengajuan'; // Grup baru atau yang sesuai
+    protected static ?string $navigationGroup = 'Manajemen Pengajuan'; 
     protected static ?string $navigationLabel = 'Pengajuan Pembiayaan';
-    protected static ?string $pluralModelLabel = 'Data Pengajuan Pembiayaan'; // Consistent and descriptive
+    protected static ?string $pluralModelLabel = 'Data Pengajuan Pembiayaan';
     protected static ?string $modelLabel = 'Pengajuan Pembiayaan'; 
     protected static ?int $navigationSort =1;
 
@@ -56,11 +56,8 @@ class LoanApplicationResource extends Resource
                                 ->relationship(
                                     name: 'customer', 
                                     titleAttribute: 'name',
-                                    // Tambahkan closure ini untuk memodifikasi query dropdown
                                     modifyQueryUsing: function (Builder $query) {
                                         $user = auth()->user();
-
-                                        // Jika bukan peran global, terapkan filter wilayah
                                         if (!$user->hasRole(['Tim IT', 'Kepala Cabang', 'Analis Cabang', 'Admin Cabang'])) {
 
                                             // Jika peran level UNIT
@@ -70,7 +67,7 @@ class LoanApplicationResource extends Resource
                                                     $accessibleRegionIds = $childSubUnitIds->push($user->region_id);
                                                     $query->whereIn('region_id', $accessibleRegionIds);
                                                 } else {
-                                                    $query->whereRaw('1 = 0'); // Jika user Unit tidak punya region, jangan tampilkan apa-apa
+                                                    $query->whereRaw('1 = 0'); 
                                                 }
                                             }
                                             // Jika peran level SUBUNIT
@@ -82,11 +79,10 @@ class LoanApplicationResource extends Resource
                                                 }
                                             }
                                             else {
-                                                // Untuk peran lain yang tidak terdefinisi, jangan tampilkan nasabah
+                                                
                                                  $query->whereRaw('1 = 0');
                                             }
                                         }
-                                        // Untuk peran global, tidak ada filter yang diterapkan, jadi semua nasabah akan tampil
                                     }
                                 )
                                 ->searchable()
@@ -174,8 +170,7 @@ class LoanApplicationResource extends Resource
             ])
             ->actions([
                 Tables\Actions\ViewAction::make()->visible(),
-                Tables\Actions\EditAction::make()->visible(fn (LoanApplication $record): bool => $record->status === 'DRAFT'), // <-- TAMBAHKAN INI
-
+                Tables\Actions\EditAction::make()->visible(fn (LoanApplication $record): bool => $record->status === 'DRAFT'), 
 
             ])
             ->bulkActions([
@@ -191,7 +186,6 @@ class LoanApplicationResource extends Resource
 
         // 1. Jika pengguna adalah Tim IT, Kepala Cabang, atau peran global lainnya, tampilkan semua data.
         if ($user->hasRole(['Tim IT', 'Kepala Cabang', 'Analis Cabang', 'Admin Cabang'])) {
-            // Jangan terapkan filter apa pun, kembalikan query asli dengan eager loading
             return parent::getEloquentQuery()->with(['customer', 'productType', 'creator', 'assignee', 'inputRegion']);
         }
 
@@ -235,9 +229,8 @@ class LoanApplicationResource extends Resource
     public static function getRelations(): array
     {
         return [
-            // Aktifkan jika Anda sudah membuatnya dan ingin menggunakannya:
             RelationManagers\DocumentsRelationManager::class,
-            RelationManagers\WorkflowsRelationManager::class, // Sebaiknya dibuat untuk menampilkan histori
+            RelationManagers\WorkflowsRelationManager::class, 
         ];
     }
     
@@ -252,7 +245,6 @@ class LoanApplicationResource extends Resource
     }    
     protected function getRedirectUrl(): string
     {
-        // Mengambil URL dari halaman 'index' (daftar/tabel) resource ini secara dinamis
         return static::getResource()::getUrl('index');
     }
 
