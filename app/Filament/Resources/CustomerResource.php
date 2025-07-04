@@ -64,10 +64,58 @@ class CustomerResource extends Resource
                         ->nullable(),
                     Forms\Components\Select::make('region_id')
                         ->label('Wilayah Domisili Nasabah')
-                        ->relationship('region', 'name')
+                        ->relationship(
+                            name: 'region',
+                            titleAttribute: 'name',
+                            modifyQueryUsing: function (Builder $query) {
+                                $user = Auth::user();
+
+                                // Jika bukan peran global, terapkan filter
+                                if (!$user->hasRole(['Tim IT', 'Kepala Cabang', 'Admin Cabang'])) {
+                                    
+                                    // Jika peran level UNIT, mereka bisa memilih Unitnya atau SubUnit di bawahnya
+                                    if ($user->hasAnyRole(['Kepala Unit', 'Admin Unit'])) {
+                                        if ($user->region_id) {
+                                            $childSubUnitIds = Region::where('parent_id', $user->region_id)->pluck('id');
+                                            $accessibleRegionIds = $childSubUnitIds->push($user->region_id);
+                                            $query->whereIn('id', $accessibleRegionIds);
+                                        } else {
+                                            $query->whereRaw('1 = 0');
+                                        }
+                                    } 
+                                    // Jika peran level SUBUNIT, mereka HANYA bisa memilih SubUnitnya sendiri
+                                    elseif ($user->hasAnyRole(['Kepala SubUnit', 'Admin SubUnit'])) {
+                                        if ($user->region_id) {
+                                            $query->where('id', $user->region_id);
+                                        } else {
+                                            $query->whereRaw('1 = 0');
+                                        }
+                                    } 
+                                    else {
+                                        $query->whereRaw('1 = 0'); // Peran lain tidak bisa memilih
+                                    }
+                                }
+                                // Untuk peran global, tidak ada filter, semua wilayah ditampilkan
+                            }
+                        )
+                        // --- TAMBAHKAN KODE INI UNTUK MEMPERBAIKI MASALAH ---
+                        ->default(function () {
+                            $user = Auth::user();
+                            // Jika pengguna adalah SubUnit, otomatis set nilainya ke region_id mereka
+                            if ($user->hasAnyRole(['Kepala SubUnit', 'Admin SubUnit'])) {
+                                return $user->region_id;
+                            }
+                            return null;
+                        })
+                        ->disabled(function () {
+                            // Kunci (disable) field ini jika pengguna adalah SubUnit
+                            return Auth::user()->hasAnyRole(['Kepala SubUnit', 'Admin SubUnit']);
+                        })
+                        // ----------------------------------------------------
                         ->searchable()
                         ->preload()
-                        ->nullable(),
+                        ->required(),
+
                 ])->columns(2),
 
             Forms\Components\Section::make('Informasi Referral (Jika Ada)')
@@ -192,11 +240,14 @@ class CustomerResource extends Resource
         return parent::getEloquentQuery()->whereRaw('1 = 0'); // Query yang selalu mengembalikan hasil kosong
     }
 
-    // Menggunakan mutateFormDataBeforeCreate untuk mengisi created_by
-    // Ini adalah cara yang lebih umum di Filament v3
-    // Atau, Anda bisa melakukannya di event Eloquent (creating) pada model Customer.
+    public static function mutateFormDataBeforeCreate(array $data): array
+    {
+        if (empty($data['region_id'])) {
+            $data['region_id'] = Auth::user()->region_id;
+        }
 
-    // getRelations() dan getPages() bisa dibiarkan default atau disesuaikan jika perlu
+        return $data;
+    }    // getRelations() dan getPages() bisa dibiarkan default atau disesuaikan jika perlu
     public static function getRelations(): array
     {
         return [

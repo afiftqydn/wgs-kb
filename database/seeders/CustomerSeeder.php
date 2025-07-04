@@ -13,7 +13,7 @@ class CustomerSeeder extends Seeder
 {
     public function run(): void
     {
-        $adminSubUnitUser = User::where('email', 'admin.subunit.ptkkota@wgs.com')->first();
+        $adminSubUnitUser = User::where('email', 'admin.subunit.pnkkota@wgs.com')->first();
         $regionSubUnitPtkKota = Region::where('code', 'PNK01-PK')->first();
         $referrerBudi = Referrer::where('generated_referral_code', 'like', '%MKT001CB%')->first();
         $referrerOrmas = Referrer::where('generated_referral_code', 'like', '%ORM001PNK%')->first();

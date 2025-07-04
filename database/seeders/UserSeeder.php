@@ -31,6 +31,8 @@ class UserSeeder extends Seeder
         $regionCabangKalbar = Region::where('code', 'KB00')->first();
         $unitKubuRaya = Region::where('code', 'KRY01')->first();
         $subunitSry = Region::where('code', 'KRY01-SRY')->first(); 
+        $unitPontianak = Region::where('code', 'PNK01')->first();
+        $subunitPnkKota = Region::where('code', 'PNK01-PK')->first(); 
 
         // --- 3. Buat Pengguna Global (Global Users) ---
         // Pengguna ini tidak terikat pada region tertentu (region_id = null).
@@ -185,9 +187,9 @@ class UserSeeder extends Seeder
 
         if ($roleAdminSubUnit && $subunitSry) {
             User::firstOrCreate(
-                ['email' => 'admin.subunit.ptkkota@wgs.com'],
+                ['email' => 'admin.subunit.sry@wgs.com'],
                 [
-                    'name' => 'Admin SubUnit Pontianak Kota',
+                    'name' => 'Admin SubUnit Sungai Raya',
                     'password' => Hash::make('password123'),
                     'region_id' => $subunitSry->id,
                     'wgs_job_title' => 'Admin SubUnit Sungai Raya',
@@ -209,6 +211,34 @@ class UserSeeder extends Seeder
                 ]
             )->assignRole($roleKepalaSubUnit);
         }
+
+        if ($roleAdminSubUnit && $subunitPnkKota) {
+            User::firstOrCreate(
+                ['email' => 'admin.subunit.pnkkota@wgs.com'],
+                [
+                    'name' => 'Admin SubUnit Pontianak Kota',
+                    'password' => Hash::make('password123'),
+                    'region_id' => $subunitPnkKota->id,
+                    'wgs_job_title' => 'Admin SubUnit Pontianak Kota',
+                    'wgs_level' => 'SUBUNIT',
+                    'email_verified_at' => now(),
+                ]
+            )->assignRole($roleAdminSubUnit);
+        }
+        if ($roleKepalaSubUnit && $subunitPnkKota) {
+            User::firstOrCreate(
+                ['email' => 'kasubunit.pnkkota@wgs.com'],
+                [
+                    'name' => 'Kepala SubUnit Pontianak Kota',
+                    'password' => Hash::make('password123'),
+                    'region_id' => $subunitPnkKota->id,
+                    'wgs_job_title' => 'Kepala SubUnit Pontianak Kota',
+                    'wgs_level' => 'SUBUNIT',
+                    'email_verified_at' => now(),
+                ]
+            )->assignRole($roleKepalaSubUnit);
+        }
+
 
         // --- 8. Pesan Konfirmasi ---
         $this->command->info('UserSeeder berhasil dijalankan. Semua pengguna yang diperlukan telah dibuat atau diperbarui.');

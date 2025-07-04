@@ -109,7 +109,7 @@ class LoanApplicationResource extends Resource
                             Select::make('input_region_id')
                                 ->label('Wilayah Input')->relationship('inputRegion', 'name')
                                 ->default(fn () => Auth::check() ? Auth::user()->region_id : null) // Cek Auth::check()
-                                ->searchable()->preload()->required(),
+                                ->searchable()->preload()->required()->disabled()->dehydrated(true),
                             Select::make('status')
                                 ->label('Status Awal')
                                 ->options(['DRAFT' => 'Draft (Simpan Sementara)', 'SUBMITTED' => 'Submitted (Ajukan Permohonan)'])
