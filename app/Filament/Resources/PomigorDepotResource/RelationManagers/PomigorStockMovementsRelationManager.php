@@ -109,16 +109,16 @@ class PomigorStockMovementsRelationManager extends RelationManager
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->defaultSort('transaction_date', 'desc') // Urutkan berdasarkan tanggal transaksi terbaru
-            ->filters([
-                SelectFilter::make('transaction_type')
-                    ->options([
-                        'REFILL' => 'Pengisian Ulang (Refill)',
-                        'SALE_REPORTED' => 'Laporan Penjualan',
-                        'ADJUSTMENT_INCREASE' => 'Penyesuaian Penambahan',
-                        'ADJUSTMENT_DECREASE' => 'Penyesuaian Pengurangan',
-                    ]),
-                // Anda bisa menambahkan filter berdasarkan tanggal jika diperlukan
-            ])
+            // ->filters([
+            //     SelectFilter::make('transaction_type')
+            //         ->options([
+            //             'REFILL' => 'Pengisian Ulang (Refill)',
+            //             'SALE_REPORTED' => 'Laporan Penjualan',
+            //             'ADJUSTMENT_INCREASE' => 'Penyesuaian Penambahan',
+            //             'ADJUSTMENT_DECREASE' => 'Penyesuaian Pengurangan',
+            //         ]),
+            //     // Anda bisa menambahkan filter berdasarkan tanggal jika diperlukan
+            // ])
             ->headerActions([
                 Tables\Actions\CreateAction::make() // Tombol untuk menambah data pergerakan stok baru
                     ->label('Catat Pergerakan Stok Baru'), 

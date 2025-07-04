@@ -8,23 +8,26 @@ use Filament\Widgets;
 use Filament\PanelProvider;
 use Illuminate\Support\Carbon;
 use Filament\Support\Colors\Color;
-use Filament\Navigation\UserMenuItem;
 use Illuminate\Contracts\View\View;
+use Filament\Navigation\UserMenuItem;
 use Filament\Http\Middleware\Authenticate;
+use App\Filament\Widgets\UnitCommissionChart;
+use App\Http\Middleware\UpdateUserLastActivity;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Cookie\Middleware\EncryptCookies;
+use App\Filament\Widgets\CommissionStatsOverview;
+use App\Filament\Widgets\CommissionByProductChart;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use App\Filament\Widgets\RecentLoanApplicationsWidget;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
+// use App\Filament\Widgets\OnlineUsersWidget;
+
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use App\Filament\Pages\Auth\LoginPage as AppCustomLoginPage;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
-// use App\Filament\Widgets\OnlineUsersWidget;
-
-use App\Http\Middleware\UpdateUserLastActivity;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -111,11 +114,12 @@ class AdminPanelProvider extends PanelProvider
                 Pages\Dashboard::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
-            ->widgets([
-                Widgets\AccountWidget::class,
-                RecentLoanApplicationsWidget::class,
-                // OnlineUsersWidget::class,
-            ])
+            // ->widgets([
+            //     CommissionStatsOverview::class,
+            //     CommissionByProductChart::class,
+            //     RecentLoanApplicationsWidget::class,
+            //     Widgets\AccountWidget::class,
+            // ])
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,

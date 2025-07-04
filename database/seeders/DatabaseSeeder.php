@@ -15,15 +15,16 @@ public function run(): void
     $this->call([
         RegionSeeder::class,
         ProductTypeSeeder::class,
+        ProductTypeRuleSeeder::class, // <-- Tambahkan baris ini
         RolePermissionSeeder::class,
         UserSeeder::class,
         CustomerSeeder::class,
         ReferrerSeeder::class,
         KaryawanSeeder::class,
+        LoanApplicationSeeder::class,
         PomigorDepotSeeder::class,
         PomigorStockMovementSeeder::class,
-        LoanApplicationSeeder::class,
-        ArsipSeeder::class
+        // ArsipSeeder::class
     ]);
 }
 }

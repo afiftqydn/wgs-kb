@@ -97,7 +97,7 @@ class LoanApplicationResource extends Resource
                                     $product = ProductType::find($state);
                                     if($product) {
                                         $set('amount_requested', $product->min_amount);
-                                        $set('product_required_documents', $product->required_documents?->toArray() ?: []);
+                                         $set('product_required_documents', $product->required_documents ?: []);
                                     } else {
                                         $set('product_required_documents', []);
                                     }
