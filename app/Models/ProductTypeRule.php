@@ -17,6 +17,7 @@ class ProductTypeRule extends Model
     protected $fillable = [
         'product_type_id',
         'name',
+        'recipient_level', // <-- TAMBAHKAN INI
         'type',
         'value',
     ];

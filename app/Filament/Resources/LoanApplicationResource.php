@@ -90,6 +90,15 @@ class LoanApplicationResource extends Resource
                                 ->required()
                                 ->createOptionForm(CustomerResource::getCreationFormSchema())
                                 ->createOptionAction(fn (Forms\Components\Actions\Action $action) => $action->modalWidth('5xl')),
+
+                            Select::make('referrer_id')
+                                ->label('Referral / Marketing (Opsional)')
+                                ->relationship('referrer', 'name')
+                                ->searchable()
+                                ->preload()
+                                ->helperText('Pilih nama referral jika pengajuan ini dibawa oleh seorang marketing.'),
+
+
                             Select::make('product_type_id')
                                 ->label('Jenis Produk Pembiayaan')->relationship('productType', 'name')
                                 ->searchable()->preload()->live()
@@ -107,9 +116,45 @@ class LoanApplicationResource extends Resource
                             Textarea::make('purpose')
                                 ->label('Tujuan Pembiayaan')->columnSpanFull()->nullable(),
                             Select::make('input_region_id')
-                                ->label('Wilayah Input')->relationship('inputRegion', 'name')
-                                ->default(fn () => Auth::check() ? Auth::user()->region_id : null) // Cek Auth::check()
-                                ->searchable()->preload()->required()->disabled()->dehydrated(true),
+                                ->label('Wilayah Input')
+                                ->relationship('inputRegion', 'name', function (Builder $query) {
+                                    $user = auth()->user();
+
+                                    // Tim IT / Kepala Cabang bisa melihat semua wilayah
+                                    if ($user->hasRole(['Tim IT', 'Kepala Cabang'])) {
+                                        return; // Tidak ada batasan
+                                    }
+
+                                    // Pengguna level Unit bisa melihat unitnya dan semua subunit di bawahnya
+                                    if ($user->hasAnyRole(['Kepala Unit', 'Analis Unit', 'Admin Unit'])) {
+                                        if ($user->region_id) {
+                                            $childRegionIds = Region::where('parent_id', $user->region_id)->pluck('id');
+                                            $accessibleRegionIds = $childRegionIds->push($user->region_id);
+                                            $query->whereIn('id', $accessibleRegionIds);
+                                        } else {
+                                            $query->whereRaw('1 = 0'); // Jika tidak punya region, jangan tampilkan apa-apa
+                                        }
+                                        return;
+                                    }
+
+                                    // Pengguna level SubUnit hanya bisa melihat wilayahnya sendiri
+                                    if ($user->hasAnyRole(['Kepala SubUnit', 'Admin SubUnit'])) {
+                                        if ($user->region_id) {
+                                            $query->where('id', $user->region_id);
+                                        } else {
+                                            $query->whereRaw('1 = 0');
+                                        }
+                                        return;
+                                    }
+                                    
+                                    // Default untuk peran lain adalah tidak melihat apa-apa
+                                    $query->whereRaw('1 = 0');
+                                })
+                                ->searchable()
+                                ->preload()
+                                ->default(fn () => auth()->user()->region_id) // Set default ke wilayah user
+                                ->disabled(fn () => !auth()->user()->hasAnyRole(['Tim IT', 'Kepala Cabang', 'Kepala Unit', 'Analis Unit', 'Admin Unit'])) // Disabled untuk SubUnit
+                                ->required(),
                             Select::make('status')
                                 ->label('Status Awal')
                                 ->options(['DRAFT' => 'Draft (Simpan Sementara)', 'SUBMITTED' => 'Submitted (Ajukan Permohonan)'])

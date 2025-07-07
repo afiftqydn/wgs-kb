@@ -19,7 +19,18 @@ class ProductTypeRulesRelationManager extends RelationManager
                 Forms\Components\TextInput::make('name')
                     ->required()
                     ->maxLength(255)
-                    ->label('Nama Aturan'),
+                    ->label('Nama Aturan (Contoh: Komisi Unit, Fee Referral)'),
+                
+                // TAMBAHKAN DROPDOWN INI
+                Forms\Components\Select::make('recipient_level')
+                    ->label('Penerima Komisi')
+                    ->options([
+                        'Unit' => 'Unit Pemroses',
+                        'Cabang' => 'Cabang Induk',
+                        'Referral' => 'Referral/Marketing',
+                    ])
+                    ->required(),
+
                 Forms\Components\Select::make('type')
                     ->options([
                         'percentage' => 'Persentase (%)',
@@ -40,9 +51,11 @@ class ProductTypeRulesRelationManager extends RelationManager
             ->recordTitleAttribute('name')
             ->columns([
                 Tables\Columns\TextColumn::make('name')->label('Nama Aturan'),
+                Tables\Columns\TextColumn::make('recipient_level')->label('Penerima'), // Tampilkan di tabel
                 Tables\Columns\TextColumn::make('type')->label('Jenis'),
                 Tables\Columns\TextColumn::make('value')->label('Nilai')->numeric(),
             ])
+            // ... sisa kode actions ...
             ->headerActions([
                 Tables\Actions\CreateAction::make(),
             ])

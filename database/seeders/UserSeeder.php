@@ -111,18 +111,9 @@ class UserSeeder extends Seeder
         // Asumsi kode region: 3 huruf awal kota/kabupaten + 01.
         $kabupatenKotaUnits = [
             ['name' => 'Pontianak', 'code' => 'PNK01'],
-            ['name' => 'Mempawah', 'code' => 'MPW01'],
             ['name' => 'Sambas', 'code' => 'SBS01'],
             ['name' => 'Kubu Raya', 'code' => 'KRY01'],
-            ['name' => 'Sintang', 'code' => 'STG01'],
             ['name' => 'Ketapang', 'code' => 'KTP01'],
-            ['name' => 'Melawi', 'code' => 'MLW01'],
-            ['name' => 'Bengkayang', 'code' => 'BKY01'],
-            ['name' => 'Sekadau', 'code' => 'SKD01'],
-            ['name' => 'Sanggau', 'code' => 'SGU01'],
-            ['name' => 'Kayong Utara', 'code' => 'KKU01'],
-            ['name' => 'Kapuas Hulu', 'code' => 'KPH01'],
-            ['name' => 'Landak', 'code' => 'LDK01'],
             ['name' => 'Singkawang', 'code' => 'SKW01'],
         ];
 

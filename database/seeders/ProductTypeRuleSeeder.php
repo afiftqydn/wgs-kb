@@ -19,18 +19,19 @@ class ProductTypeRuleSeeder extends Seeder
 
         // Data komisi berdasarkan PDF dan asumsi untuk produk lain
         $commissionData = [
-            ['product_name' => 'KPR', 'commission' => 2000000],
-            ['product_name' => 'Renovasi Rumah', 'commission' => 800000],
-            ['product_name' => 'Pendidikan', 'commission' => 500000],
-            ['product_name' => 'Pertanian/Perkebunan/Peternakan', 'commission' => 500000],
-            // Menambahkan data komisi default untuk produk yang sudah ada di seeder Anda
-            ['product_name' => 'Pembiayaan UMKM', 'commission' => 750000],
-            ['product_name' => 'Kredit Usaha Rakyat (KUR)', 'commission' => 500000],
-            ['product_name' => 'Pembiayaan Modal Kerja', 'commission' => 1500000],
+            // recipient_level ditambahkan di sini
+            ['product_name' => 'KPR', 'commission' => 2000000, 'recipient' => 'Unit'],
+            ['product_name' => 'Renovasi Rumah', 'commission' => 800000, 'recipient' => 'Unit'],
+            ['product_name' => 'Pendidikan', 'commission' => 500000, 'recipient' => 'Unit'],
+            ['product_name' => 'Pertanian/Perkebunan/Peternakan', 'commission' => 500000, 'recipient' => 'Unit'],
+            ['product_name' => 'Pembiayaan UMKM', 'commission' => 750000, 'recipient' => 'Unit'],
+            ['product_name' => 'Kredit Usaha Rakyat (KUR)', 'commission' => 500000, 'recipient' => 'Unit'],
+            ['product_name' => 'Pembiayaan Modal Kerja', 'commission' => 1500000, 'recipient' => 'Unit'],
+            // Contoh untuk Fee Referral
+            ['product_name' => 'KPR', 'commission' => 500000, 'recipient' => 'Referral'],
         ];
 
         foreach ($commissionData as $data) {
-            // Cari ProductType berdasarkan nama. Jika tidak ada, lewati.
             $productType = ProductType::where('name', $data['product_name'])->first();
 
             if ($productType) {
@@ -38,10 +39,11 @@ class ProductTypeRuleSeeder extends Seeder
                 ProductTypeRule::firstOrCreate(
                     [
                         'product_type_id' => $productType->id,
-                        'name' => 'Komisi Unit', // Nama aturan standar
+                        'name' => 'Komisi ' . $data['recipient'], // e.g., "Komisi Unit", "Komisi Referral"
+                        'recipient_level' => $data['recipient'], // Mengisi kolom yang hilang
                     ],
                     [
-                        'type' => 'flat', // Semua komisi di PDF adalah flat
+                        'type' => 'flat',
                         'value' => $data['commission'],
                     ]
                 );

@@ -24,7 +24,7 @@ public function run(): void
         LoanApplicationSeeder::class,
         PomigorDepotSeeder::class,
         PomigorStockMovementSeeder::class,
-        // ArsipSeeder::class
+        ArsipSeeder::class,
     ]);
 }
 }

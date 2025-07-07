@@ -25,6 +25,7 @@ class LoanApplication extends Model
         'customer_id',
         'product_type_id',
         'amount_requested',
+        'referrer_id', // Pastikan ini ada di $fillable
         'purpose',
         'input_region_id',
         'processing_region_id',
@@ -78,6 +79,10 @@ class LoanApplication extends Model
     public function assignee(): BelongsTo { return $this->belongsTo(User::class, 'assigned_to'); }
     public function documents(): HasMany { return $this->hasMany(ApplicationDocument::class); }
     public function workflows(): HasMany { return $this->hasMany(ApplicationWorkflow::class); }
+    public function referrer(): BelongsTo
+    {
+        return $this->belongsTo(Referrer::class);
+    }
 
     // --- MODEL EVENTS ---
     protected static function booted()
