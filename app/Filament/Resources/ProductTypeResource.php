@@ -2,18 +2,26 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\ProductTypeResource\Pages;
-use App\Filament\Resources\ProductTypeResource\RelationManagers; // 1. Pastikan ini ada
-use App\Models\ProductType;
 use Filament\Forms;
-use Filament\Forms\Form;
-use Filament\Resources\Resource;
 use Filament\Tables;
+use Livewire\Livewire;
+use Filament\Forms\Form;
 use Filament\Tables\Table;
+use App\Models\ProductType;
+use Filament\Resources\Resource;
+use Filament\Tables\Actions\Action;
 use Filament\Forms\Components\Textarea;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\TagsInput;
 use Filament\Tables\Columns\TextColumn;
+use Illuminate\Support\Facades\Storage;
+use Filament\Forms\Components\TagsInput;
+use Filament\Forms\Components\TextInput;
+use Filament\Tables\Columns\ImageColumn;
+
+// Import Actions dan Infolist Components yang diperlukan
+use Filament\Forms\Components\FileUpload;
+use App\Http\Livewire\ViewPaymentSimulationImage;
+use App\Filament\Resources\ProductTypeResource\Pages;
+use App\Filament\Resources\ProductTypeResource\RelationManagers;
 
 class ProductTypeResource extends Resource
 {
@@ -56,6 +64,14 @@ class ProductTypeResource extends Resource
                     ->label('Dokumen yang Dibutuhkan')
                     ->helperText('Masukkan nama dokumen satu per satu dan tekan Enter.')
                     ->columnSpanFull(),
+                FileUpload::make('payment_simulation_image')
+                    ->label('Simulasi Pembayaran (JPEG)')
+                    ->image()
+                    ->acceptedFileTypes(['image/jpeg', 'image/png'])
+                    ->directory('product-type-simulations')
+                    ->visibility('public')
+                    ->nullable()
+                    ->columnSpanFull(),
             ])->columns(2);
     }
 
@@ -83,7 +99,22 @@ class ProductTypeResource extends Resource
             ->actions([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
-            ])
+                
+                Action::make('view_simulation')
+                    ->label('Simulasi')
+                    ->icon('heroicon-o-eye')
+                    ->tooltip('Check Simulasi Pembayaran')
+                    ->modalSubmitAction(false)
+                    ->modalCancelAction(false)
+                    ->modalWidth('4xl')
+                    ->modalHeading(fn (ProductType $record) => 'Simulasi Pembayaran: ' . $record->name)
+                    ->visible(fn (ProductType $record): bool => (bool) $record->payment_simulation_image)
+                    ->modalContent(fn (ProductType $record) =>
+                        view('livewire.view-payment-simulation-image', [
+                            'imageUrl' => Storage::url($record->payment_simulation_image),
+                        ])
+                    )
+                ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
@@ -91,9 +122,6 @@ class ProductTypeResource extends Resource
             ]);
     }
 
-    /**
-     * 2. Aktifkan kembali Relation Manager di sini
-     */
     public static function getRelations(): array
     {
         return [

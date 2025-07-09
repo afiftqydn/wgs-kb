@@ -20,16 +20,15 @@ class LoanApplicationSeeder extends Seeder
         // Ambil data master
         $adminUnitPnk = User::where('email', 'admin.pontianak@wgs.com')->first();
         $customer1 = Customer::where('email', 'ahmad.subagja@example.com')->first();
-        $productUMKM = ProductType::where('name', 'Pembiayaan UMKM')->first();
-        $productKUR = ProductType::where('name', 'Kredit Usaha Rakyat (KUR)')->first();
-        $productKPR = ProductType::where('name', 'KPR')->first();
+        $productKUR = ProductType::where('name', 'KUR SUPERMI (Super Mikro)')->first();
+        $productKPR = ProductType::where('name', 'Kredit KPR')->first();
         $unitPontianak = Region::where('code', 'PNK01')->first();
         $referralBudi = Referrer::where('name', 'like', 'Budi Marketing Cabang%')->first();
         $creatorKubuRaya = User::where('email', 'admin.subunit.sry@wgs.com')->first();
         $customerKubuRaya = Customer::where('nik', '3210987654321004')->first();
 
         // Validasi data penting
-        if (!$adminUnitPnk || !$customer1 || !$productUMKM || !$productKUR || !$productKPR || !$unitPontianak) {
+        if (!$adminUnitPnk || !$customer1 || !$productKUR || !$productKPR || !$unitPontianak) {
             $this->command->error('Data master tidak lengkap. Seeder dibatalkan.');
             return;
         }
@@ -38,38 +37,6 @@ class LoanApplicationSeeder extends Seeder
         // BAGIAN 1: Data Spesifik untuk UAT & Komisi (Unit dan Referral)
         // =========================================================================
         $this->command->info('-- Membuat data spesifik untuk UAT & Komisi...');
-
-        // UAT - Pengajuan UMKM (SUBMITTED dan DRAFT)
-        LoanApplication::firstOrCreate(
-            ['application_number' => 'APP/' . date('Y/m') . '/S0001'],
-            [
-                'customer_id' => $customer1->id,
-                'product_type_id' => $productUMKM->id,
-                'amount_requested' => 75000000.00,
-                'purpose' => 'Pengembangan usaha toko kelontong Subagja',
-                'input_region_id' => $customer1->region_id,
-                'processing_region_id' => $unitPontianak->id,
-                'status' => 'SUBMITTED',
-                'created_by' => $adminUnitPnk->id,
-                'created_at' => Carbon::now()->subDays(5),
-            ]
-        );
-
-        LoanApplication::firstOrCreate(
-            ['application_number' => 'APP/' . date('Y/m') . '/D0001'],
-            [
-                'customer_id' => $customer1->id,
-                'product_type_id' => $productUMKM->id,
-                'amount_requested' => 20000000.00,
-                'purpose' => 'Renovasi tempat usaha Subagja',
-                'input_region_id' => $customer1->region_id,
-                'processing_region_id' => $unitPontianak->id,
-                'status' => 'DRAFT',
-                'created_by' => $adminUnitPnk->id,
-                'assigned_to' => $adminUnitPnk->id,
-                'created_at' => Carbon::now()->subDays(3),
-            ]
-        );
 
         // UAT - Pengajuan dari Sub Unit Kubu Raya
         if ($customerKubuRaya && $creatorKubuRaya) {

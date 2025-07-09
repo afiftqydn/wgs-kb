@@ -68,8 +68,7 @@ class ReferrerResource extends Resource
                     ->unique(Referrer::class, 'generated_referral_code', ignoreRecord: true)
                     ->required()
                     ->helperText('Format: TIPE-KODEWILAYAH-KODEUNIK. Contoh: MRKT-KB00-MKT001')
-                    ->readOnly(fn(string $context) => $context === 'create'), // Readonly saat create, bisa diedit saat edit jika perlu (hati-hati)
-                // ->disabled(), // Alternatif jika ingin selalu disabled dan di-generate sistem
+                    ->readOnly(fn(string $context) => $context === 'create'), 
                 Forms\Components\TextInput::make('contact_person')
                     ->label('Nama Narahubung')
                     ->maxLength(255)
@@ -109,7 +108,7 @@ class ReferrerResource extends Resource
             $prefix = ($type === 'MARKETING') ? 'MRKT' : 'ORMS';
             $set('generated_referral_code', strtoupper($prefix . '-' . $regionCode . '-' . $uniqueCode));
         } else {
-            $set('generated_referral_code', ''); // Kosongkan jika tidak lengkap
+            $set('generated_referral_code', ''); 
         }
     }
 

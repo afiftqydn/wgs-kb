@@ -15,41 +15,51 @@ class ProductTypeRuleSeeder extends Seeder
      */
     public function run(): void
     {
-        $this->command->info('Menjalankan ProductTypeRuleSeeder...');
+        $this->command->info('Menjalankan ProductTypeRuleSeeder dengan data yang diperbaiki...');
 
-        // Data komisi berdasarkan PDF dan asumsi untuk produk lain
+        // Data komisi dengan nama produk yang sudah disesuaikan
+        // Perhatikan bahwa nama produk sekarang cocok dengan yang ada di ProductTypeSeeder
         $commissionData = [
-            // recipient_level ditambahkan di sini
-            ['product_name' => 'KPR', 'commission' => 2000000, 'recipient' => 'Unit'],
-            ['product_name' => 'Renovasi Rumah', 'commission' => 800000, 'recipient' => 'Unit'],
-            ['product_name' => 'Pendidikan', 'commission' => 500000, 'recipient' => 'Unit'],
-            ['product_name' => 'Pertanian/Perkebunan/Peternakan', 'commission' => 500000, 'recipient' => 'Unit'],
-            ['product_name' => 'Pembiayaan UMKM', 'commission' => 750000, 'recipient' => 'Unit'],
-            ['product_name' => 'Kredit Usaha Rakyat (KUR)', 'commission' => 500000, 'recipient' => 'Unit'],
-            ['product_name' => 'Pembiayaan Modal Kerja', 'commission' => 1500000, 'recipient' => 'Unit'],
-            // Contoh untuk Fee Referral
-            ['product_name' => 'KPR', 'commission' => 500000, 'recipient' => 'Referral'],
+            // Fee untuk Unit
+            ['product_name' => 'Kredit KPR', 'commission' => 2000000, 'recipient' => 'Unit'],
+            ['product_name' => 'Kredit Renovasi Rumah', 'commission' => 800000, 'recipient' => 'Unit'],
+            ['product_name' => 'Kredit Pendidikan', 'commission' => 500000, 'recipient' => 'Unit'],
+            ['product_name' => 'Kredit Pertanian, Perkebunan Dan Kelautan', 'commission' => 500000, 'recipient' => 'Unit'],
+            // Asumsi 'Pembiayaan UMKM' sama dengan 'Kredit Modal Kerja'
+            ['product_name' => 'Kredit Modal Kerja', 'commission' => 750000, 'recipient' => 'Unit'],
+            ['product_name' => 'Kredit Modal Kerja', 'commission' => 1500000, 'recipient' => 'Unit'], // Anda punya dua aturan untuk ini, saya sertakan keduanya
+            
+            // Aturan untuk semua jenis KUR
+            ['product_name' => 'KUR SUPERMI (Super Mikro)', 'commission' => 500000, 'recipient' => 'Unit'],
+            ['product_name' => 'KUR Mikro Small', 'commission' => 500000, 'recipient' => 'Unit'],
+            ['product_name' => 'KUR Mikro Medium', 'commission' => 500000, 'recipient' => 'Unit'],
+            
+            // Fee untuk Referral
+            ['product_name' => 'Kredit KPR', 'commission' => 500000, 'recipient' => 'Referral'],
         ];
 
         foreach ($commissionData as $data) {
             $productType = ProductType::where('name', $data['product_name'])->first();
 
             if ($productType) {
-                // Buat aturan komisi untuk ProductType tersebut
+                // Buat aturan komisi untuk ProductType yang ditemukan
                 ProductTypeRule::firstOrCreate(
                     [
                         'product_type_id' => $productType->id,
-                        'name' => 'Komisi ' . $data['recipient'], // e.g., "Komisi Unit", "Komisi Referral"
-                        'recipient_level' => $data['recipient'], // Mengisi kolom yang hilang
+                        'name' => 'Komisi ' . $data['recipient'],
+                        'recipient_level' => $data['recipient'],
                     ],
                     [
                         'type' => 'flat',
                         'value' => $data['commission'],
                     ]
                 );
+            } else {
+                // Beri peringatan jika produk tidak ditemukan
+                $this->command->warn('Peringatan: ProductType dengan nama "' . $data['product_name'] . '" tidak ditemukan. Aturan dilewati.');
             }
         }
 
-        $this->command->info('ProductTypeRuleSeeder selesai.');
+        $this->command->info('ProductTypeRuleSeeder selesai dijalankan.');
     }
 }

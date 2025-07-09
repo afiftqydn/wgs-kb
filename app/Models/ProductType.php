@@ -22,6 +22,7 @@ class ProductType extends Model
         'max_amount',
         'required_documents',
         'escalation_threshold',
+        'payment_simulation_image', // Tambahkan ini
     ];
 
     /**
