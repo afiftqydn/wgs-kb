@@ -42,8 +42,9 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login(AppCustomLoginPage::class)
             ->brandLogo(asset('images/Logo.png'))
-            ->brandLogoHeight('63px')
+            ->brandLogoHeight('62px')
             ->breadcrumbs(false)
+            ->favicon(asset('images/Logo.png'))
             // ->spa()
             ->sidebarWidth('20rem')
             ->navigationGroups([
@@ -89,6 +90,10 @@ class AdminPanelProvider extends PanelProvider
                 fn (): View => view('filament.custom.theme-toggle'),
             )
 
+            ->renderHook(
+            'panels::body.end',
+            fn (): View => view('filament.footer'),
+        )
 
             ->colors([
                 'primary' => [
@@ -138,6 +143,7 @@ class AdminPanelProvider extends PanelProvider
             ->authMiddleware([
                 Authenticate::class,
             ])
+            ->theme(asset('css/filament/admin/theme.css'))
             ->plugins([
                 \BezhanSalleh\FilamentShield\FilamentShieldPlugin::make(),
             ]);

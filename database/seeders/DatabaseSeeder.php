@@ -25,6 +25,7 @@ public function run(): void
         PomigorDepotSeeder::class,
         PomigorStockMovementSeeder::class,
         ArsipSeeder::class,
+        GajiSeeder::class,
     ]);
 }
 }

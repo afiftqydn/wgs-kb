@@ -7,8 +7,6 @@ use App\Models\Karyawan;
 use App\Models\Region;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\Grid;
-use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Tabs;
@@ -23,13 +21,17 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Auth;
 
-// --- [PENTING] Impor semua class yang dibutuhkan untuk SoftDeletes ---
+// Impor untuk SoftDeletes & Action
 use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\ForceDeleteAction;
 use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Filament\Tables\Actions\RestoreBulkAction;
 use Filament\Tables\Filters\TrashedFilter;
+
+// Impor untuk Action PDF
+use Filament\Tables\Actions\Action;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 
 class KaryawanResource extends Resource
@@ -48,49 +50,166 @@ class KaryawanResource extends Resource
             ->schema([
                 Tabs::make('Buat Karyawan Baru')->tabs([
                     Tabs\Tab::make('Data Pribadi')
-                        ->icon('heroicon-o-user')
+                        ->icon('heroicon-o-user-circle')
                         ->schema([
-                            FileUpload::make('pas_foto')->label('Pas Foto')->image()->avatar()->imageEditor()->directory('karyawan/foto')->columnSpanFull(),
-                            TextInput::make('nama_lengkap')->required()->maxLength(255),
-                            TextInput::make('email')->email()->required()->unique(ignoreRecord: true)->maxLength(255),
-                            Grid::make(2)->schema([
-                                TextInput::make('tempat_lahir')->required(),
-                                DatePicker::make('tanggal_lahir')->required(),
-                            ]),
-                            Radio::make('jenis_kelamin')->options(['Pria' => 'Pria', 'Wanita' => 'Wanita'])->required(),
-                            Select::make('agama')->options(['Islam' => 'Islam', 'Kristen Protestan' => 'Kristen Protestan', 'Kristen Katolik' => 'Kristen Katolik', 'Hindu' => 'Hindu', 'Buddha' => 'Buddha', 'Khonghucu' => 'Khonghucu'])->required()->searchable(),
-                            Select::make('status_pernikahan')->options(['Belum Menikah' => 'Belum Menikah', 'Menikah' => 'Menikah', 'Cerai Hidup' => 'Cerai Hidup', 'Cerai Mati' => 'Cerai Mati'])->required()->searchable(),
-                            Textarea::make('alamat_ktp')->required()->columnSpanFull(),
-                            Textarea::make('alamat_domisili')->required()->columnSpanFull(),
+                            Section::make('Foto Profil')
+                                ->description('Unggah pas foto karyawan dengan format yang jelas.')
+                                ->schema([
+                                    FileUpload::make('pas_foto')
+                                        ->label('Pas Foto')
+                                        ->image()
+                                        ->avatar()
+                                        ->imageEditor()
+                                        ->directory('karyawan/foto')
+                                        ->columnSpanFull(),
+                                ]),
+                            Section::make('Informasi Utama')
+                                ->columns(2)
+                                ->schema([
+                                    TextInput::make('nama_lengkap')
+                                        ->prefixIcon('heroicon-o-user')
+                                        ->required()
+                                        ->maxLength(255),
+                                    TextInput::make('email')
+                                        ->prefixIcon('heroicon-o-envelope')
+                                        ->email()
+                                        ->required()
+                                        ->unique(ignoreRecord: true)
+                                        ->maxLength(255),
+                                    TextInput::make('tempat_lahir')
+                                        ->prefixIcon('heroicon-o-map-pin')
+                                        ->required(),
+                                    DatePicker::make('tanggal_lahir')
+                                        ->prefixIcon('heroicon-o-calendar-days')
+                                        ->required(),
+                                    TextInput::make('jenis_kelamin') // Menggunakan TextInput sebagai contoh jika Radio bermasalah, atau sesuaikan
+                                        ->prefixIcon('heroicon-o-user')
+                                        ->required(),
+                                    Select::make('agama')
+                                        ->prefixIcon('heroicon-o-hand-raised')
+                                        ->options(['Islam' => 'Islam', 'Kristen Protestan' => 'Kristen Protestan', 'Kristen Katolik' => 'Kristen Katolik', 'Hindu' => 'Hindu', 'Buddha' => 'Buddha', 'Khonghucu' => 'Khonghucu'])
+                                        ->required()->searchable(),
+                                    Select::make('status_pernikahan')
+                                        ->prefixIcon('heroicon-o-users')
+                                        ->options(['Belum Menikah' => 'Belum Menikah', 'Menikah' => 'Menikah', 'Cerai Hidup' => 'Cerai Hidup', 'Cerai Mati' => 'Cerai Mati'])
+                                        ->required()->searchable(),
+                                ]),
+                            Section::make('Alamat')
+                                ->schema([
+                                    Textarea::make('alamat_ktp')
+                                        ->label('Alamat Sesuai KTP')
+                                        ->required(),
+                                    Textarea::make('alamat_domisili')
+                                        ->label('Alamat Domisili Saat Ini')
+                                        ->required(),
+                                ])->columns(1),
                         ]),
-                    Tabs\Tab::make('Informasi Pekerjaan')->icon('heroicon-o-briefcase')->schema([
-                        TextInput::make('jabatan')->required(),
-                        Select::make('status_karyawan')->options(['Tetap/PKWTT' => 'Tetap/PKWTT', 'Kontrak/PKWT' => 'Kontrak/PKWT', 'Magang' => 'Magang', 'Harian' => 'Harian'])->required()->live(),
-                        DatePicker::make('tanggal_bergabung')->required(),
-                        DatePicker::make('tanggal_berakhir_kontrak')->label('Tanggal Berakhir Kontrak (jika PKWT)')->native(false)->visible(fn (Get $get) => $get('status_karyawan') === 'Kontrak/PKWT'),
-                        Select::make('region_id')->label('Kantor/Wilayah')->relationship('region', 'name')->required()->searchable()->preload(),
-                        TextInput::make('no_hp')->label('No. HP Aktif')->tel()->required(),
-                    ]),
-                    Tabs\Tab::make('Finansial & Legal')->icon('heroicon-o-banknotes')->schema([
-                        TextInput::make('npwp')->label('Nomor NPWP')->unique(ignoreRecord: true)->nullable(),
-                        TextInput::make('bpjs_ketenagakerjaan')->label('Nomor BPJS Ketenagakerjaan')->unique(ignoreRecord: true)->nullable(),
-                        TextInput::make('bpjs_kesehatan')->label('Nomor BPJS Kesehatan')->unique(ignoreRecord: true)->nullable(),
-                        Section::make('Informasi Rekening Bank')->schema([
-                            TextInput::make('nama_bank')->label('Nama Bank')->nullable(),
-                            TextInput::make('nomor_rekening')->label('Nomor Rekening')->nullable(),
-                            TextInput::make('nama_pemilik_rekening')->label('Atas Nama')->nullable(),
-                        ])->columns(3),
-                    ]),
-                    Tabs\Tab::make('Kontak Darurat')->icon('heroicon-o-phone-arrow-up-right')->schema([
-                        TextInput::make('nama_kontak_darurat')->required(),
-                        Select::make('hubungan_kontak_darurat')->label('Hubungan')->options(['Orang Tua' => 'Orang Tua', 'Pasangan' => 'Pasangan', 'Saudara' => 'Saudara', 'Anak' => 'Anak', 'Lainnya' => 'Lainnya'])->required(),
-                        TextInput::make('no_hp_kontak_darurat')->tel()->required(),
-                    ]),
-                    Tabs\Tab::make('Dokumen Digital')->icon('heroicon-o-document-arrow-up')->schema([
-                        FileUpload::make('file_ktp')->label('Upload KTP')->directory('karyawan/ktp')->acceptedFileTypes(['application/pdf', 'image/*']),
-                        FileUpload::make('file_npwp')->label('Upload NPWP')->directory('karyawan/npwp')->acceptedFileTypes(['application/pdf', 'image/*']),
-                        FileUpload::make('file_perjanjian_kerja')->label('Upload Surat Perjanjian Kerja')->directory('karyawan/kontrak')->acceptedFileTypes(['application/pdf']),
-                    ])->columns(1),
+
+                    Tabs\Tab::make('Informasi Pekerjaan')
+                        ->icon('heroicon-o-briefcase')
+                        ->schema([
+                            Section::make('Detail Pekerjaan')
+                                ->columns(2)
+                                ->schema([
+                                    TextInput::make('jabatan')
+                                        ->prefixIcon('heroicon-o-building-office')
+                                        ->required(),
+                                    Select::make('status_karyawan')
+                                        ->prefixIcon('heroicon-o-check-badge')
+                                        ->options(['Tetap/PKWTT' => 'Tetap/PKWTT', 'Kontrak/PKWT' => 'Kontrak/PKWT', 'Magang' => 'Magang', 'Harian' => 'Harian'])
+                                        ->required()->live(),
+                                    DatePicker::make('tanggal_bergabung')
+                                        ->prefixIcon('heroicon-o-calendar-days')
+                                        ->required(),
+                                    DatePicker::make('tanggal_berakhir_kontrak')
+                                        ->label('Tanggal Berakhir Kontrak (jika PKWT)')
+                                        ->prefixIcon('heroicon-o-exclamation-triangle')
+                                        ->native(false)
+                                        ->visible(fn (Get $get) => $get('status_karyawan') === 'Kontrak/PKWT'),
+                                    Select::make('region_id')
+                                        ->label('Kantor/Wilayah')
+                                        ->prefixIcon('heroicon-o-map')
+                                        ->relationship('region', 'name')
+                                        ->required()
+                                        ->searchable()
+                                        ->preload(),
+                                    TextInput::make('no_hp')
+                                        ->label('No. HP Aktif')
+                                        ->prefixIcon('heroicon-o-phone')
+                                        ->tel()
+                                        ->required(),
+                                ]),
+                        ]),
+
+                    Tabs\Tab::make('Finansial & Legal')
+                        ->icon('heroicon-o-banknotes')
+                        ->schema([
+                            Section::make('Informasi Pajak & Jaminan Sosial')
+                                ->columns(3)
+                                ->schema([
+                                    TextInput::make('npwp')->label('Nomor NPWP')
+                                        ->prefixIcon('heroicon-o-document-text')
+                                        ->unique(ignoreRecord: true)
+                                        ->nullable(),
+                                    TextInput::make('bpjs_ketenagakerjaan')->label('No. BPJS Ketenagakerjaan')
+                                        ->prefixIcon('heroicon-o-shield-check')
+                                        ->unique(ignoreRecord: true)
+                                        ->nullable(),
+                                    TextInput::make('bpjs_kesehatan')->label('No. BPJS Kesehatan')
+                                        ->prefixIcon('heroicon-o-heart')
+                                        ->unique(ignoreRecord: true)
+                                        ->nullable(),
+                                ]),
+                            Section::make('Informasi Rekening Bank')
+                                ->description('Digunakan untuk keperluan penggajian.')
+                                ->columns(3)
+                                ->schema([
+                                    TextInput::make('nama_bank')->label('Nama Bank')->prefixIcon('heroicon-o-building-library')->nullable(),
+                                    TextInput::make('nomor_rekening')->label('Nomor Rekening')->prefixIcon('heroicon-o-credit-card')->nullable(),
+                                    TextInput::make('nama_pemilik_rekening')->label('Atas Nama')->prefixIcon('heroicon-o-user')->nullable(),
+                                ]),
+                        ]),
+
+                    Tabs\Tab::make('Kontak Darurat')
+                        ->icon('heroicon-o-phone-arrow-up-right')
+                        ->schema([
+                           Section::make('Detail Kontak Darurat')
+                                ->description('Informasikan siapa yang dapat dihubungi dalam keadaan darurat.')
+                                ->columns(2)
+                                ->schema([
+                                    TextInput::make('nama_kontak_darurat')
+                                        ->prefixIcon('heroicon-o-user')
+                                        ->required(),
+                                    TextInput::make('no_hp_kontak_darurat')
+                                        ->prefixIcon('heroicon-o-phone')
+                                        ->tel()
+                                        ->required(),
+                                    Select::make('hubungan_kontak_darurat')
+                                        ->label('Hubungan')
+                                        ->prefixIcon('heroicon-o-users')
+                                        ->options(['Orang Tua' => 'Orang Tua', 'Pasangan' => 'Pasangan', 'Saudara' => 'Saudara', 'Anak' => 'Anak', 'Lainnya' => 'Lainnya'])
+                                        ->required()
+                                        ->columnSpanFull(),
+                                ]),
+                        ]),
+
+                    Tabs\Tab::make('Dokumen Digital')
+                        ->icon('heroicon-o-document-arrow-up')
+                        ->schema([
+                            Section::make('Unggah Dokumen Penting')
+                                ->description('Pastikan file yang diunggah dapat terbaca dengan jelas.')
+                                ->schema([
+                                    FileUpload::make('file_ktp')->label('Upload KTP (PDF/Gambar)')
+                                        ->directory('karyawan/ktp')
+                                        ->acceptedFileTypes(['application/pdf', 'image/*']),
+                                    FileUpload::make('file_npwp')->label('Upload NPWP (PDF/Gambar)')
+                                        ->directory('karyawan/npwp')
+                                        ->acceptedFileTypes(['application/pdf', 'image/*']),
+                                    FileUpload::make('file_perjanjian_kerja')->label('Upload Surat Perjanjian Kerja (PDF)')
+                                        ->directory('karyawan/kontrak')
+                                        ->acceptedFileTypes(['application/pdf']),
+                                ])->columns(1),
+                        ]),
                 ])->columnSpanFull(),
             ]);
     }
@@ -101,7 +220,7 @@ class KaryawanResource extends Resource
             ->columns([
                 Tables\Columns\ImageColumn::make('pas_foto')->label('Foto')->circular()->size(50),
                 Tables\Columns\TextColumn::make('nama_lengkap')->label('Nama & Jabatan')->description(fn (Karyawan $record): string => $record->jabatan)->searchable(['nama_lengkap', 'jabatan'])->sortable(),
-                Tables\Columns\BadgeColumn::make('status_karyawan')->label('Status')->colors(['success' => 'Tetap/PKWTT', 'warning' => 'Kontrak/PKWT', 'info' => 'Magang', 'gray' => 'Harian'])->searchable(),
+                Tables\Columns\TextColumn::make('status_karyawan')->label('Status')->badge()->colors(['success' => 'Tetap/PKWTT', 'warning' => 'Kontrak/PKWT', 'info' => 'Magang', 'gray' => 'Harian'])->searchable(),
                 Tables\Columns\TextColumn::make('region.name')->label('Kantor')->badge()->icon('heroicon-o-building-office')->searchable()->sortable(),
                 Tables\Columns\TextColumn::make('no_hp')->label('No. HP')->icon('heroicon-o-phone')->searchable()->copyable()->copyMessage('No. HP disalin!')->url(fn (Karyawan $record): ?string => $record->no_hp ? "tel:{$record->no_hp}" : null)->toggleable(isToggledHiddenByDefault: false),
                 Tables\Columns\TextColumn::make('created_at')->label('Tanggal Dibuat')->dateTime('d M Y H:i')->sortable()->toggleable(isToggledHiddenByDefault: true),
@@ -110,17 +229,27 @@ class KaryawanResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('status_karyawan')->label('Filter Status')->options(['Tetap/PKWTT' => 'Tetap/PKWTT', 'Kontrak/PKWT' => 'Kontrak/PKWT', 'Magang' => 'Magang', 'Harian' => 'Harian']),
                 Tables\Filters\SelectFilter::make('region_id')->label('Filter Kantor')->relationship('region', 'name')->searchable()->preload(),
-                // Filter untuk menampilkan data yang di-soft-delete
                 TrashedFilter::make(),
             ])
             ->actions([
                 Tables\Actions\ActionGroup::make([
                     Tables\Actions\ViewAction::make()->color('gray'),
                     Tables\Actions\EditAction::make()->color('warning'),
-                    // Aksi-aksi untuk Soft Deletes
-                    DeleteAction::make(), // Otomatis melakukan soft delete
-                    RestoreAction::make(), // Hanya muncul pada data yang terhapus
-                    ForceDeleteAction::make(), // Hanya muncul pada data yang terhapus
+                    Action::make('downloadPdf')
+                        ->label('Download Data Karyawan')
+                        ->icon('heroicon-o-arrow-down-tray')
+                        ->color('info')
+                        ->action(function (Karyawan $record) {
+                            $pdf = Pdf::loadView('pdf.karyawan-detail', ['karyawan' => $record]);
+                            $filename = "detail-karyawan-{$record->nama_lengkap}.pdf";
+                            return response()->streamDownload(
+                                fn () => print($pdf->output()),
+                                $filename
+                            );
+                        }),
+                    DeleteAction::make(),
+                    RestoreAction::make(),
+                    ForceDeleteAction::make(),
                 ]),
             ])
             ->bulkActions([
@@ -129,23 +258,22 @@ class KaryawanResource extends Resource
                     ForceDeleteBulkAction::make(),
                     RestoreBulkAction::make(),
                 ]),
-            ]);
+            ])
+            ->infinite();
+            // ->infinite(perPage: 5);
     }
 
     public static function getEloquentQuery(): Builder
     {
-        // Panggil query parent dan hapus scope global SoftDeletes agar filter Trashed berfungsi
         $query = parent::getEloquentQuery()->withoutGlobalScopes([
             SoftDeletingScope::class,
         ]);
         
-        // Terapkan scope region kustom Anda setelahnya
         return static::applyRegionScope($query);
     }
 
     public static function getNavigationBadge(): ?string
     {
-        // Hitung badge navigasi hanya dari data yang aktif (tidak terhapus) dan sesuai region
         $query = static::getModel()::query()->whereNull('deleted_at');
         return static::applyRegionScope($query)->count();
     }
@@ -164,9 +292,6 @@ class KaryawanResource extends Resource
         ];
     }
 
-    /**
-     * Fungsi terpusat untuk menerapkan filter berdasarkan region pengguna.
-     */
     protected static function applyRegionScope(Builder $query): Builder
     {
         $user = Auth::user();
@@ -193,7 +318,6 @@ class KaryawanResource extends Resource
             }
         }
         
-        // Jika user adalah super admin (tidak punya region_id) atau kondisi lain, kembalikan query apa adanya
         return $query;
     }
 }
