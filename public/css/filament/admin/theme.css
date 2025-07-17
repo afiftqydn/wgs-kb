@@ -6062,11 +6062,11 @@ input:focus-visible+.dark\:\[input\:focus-visible\+\&\]\:ring-white\/20:is(.dark
 
 .fi-main {
     background-color: #f0fdf4;
-}
+} */
 
 .fi-ta-header-toolbar {
-    background-color: #525b68;
-} */
+  background-color: #525b68;
+}
 
 .footer {
   width: 100%;

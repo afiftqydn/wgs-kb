@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\GajiResource\Pages;
+use App\Filament\Resources\GajiResource\Pages; // Pastikan ini ada
 use App\Models\Gaji;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -27,7 +27,6 @@ class GajiResource extends Resource
     protected static ?string $pluralModelLabel = 'Data Gaji Karyawan';
 
     protected static ?int $navigationSort = 10;
-
 
     public static function form(Form $form): Form
     {
@@ -109,8 +108,8 @@ class GajiResource extends Resource
             ->actions([
                 Tables\Actions\ActionGroup::make([
                     Tables\Actions\ViewAction::make(),
-                    Tables\Actions\EditAction::make(),
-                    // Aksi untuk download PDF
+                    Tables\Actions\EditAction::make()->color('warning'),
+                    // Aksi untuk download PDF per baris (sudah benar)
                     Action::make('downloadSlipGaji')
                         ->label('Slip Gaji')
                         ->color('success')
@@ -140,6 +139,7 @@ class GajiResource extends Resource
     public static function getPages(): array
     {
         return [
+            // Pastikan 'index' mengarah ke class ListGajis yang baru kita buat
             'index' => Pages\ListGajis::route('/'),
             'create' => Pages\CreateGaji::route('/create'),
             'view' => Pages\ViewGaji::route('/{record}'),
