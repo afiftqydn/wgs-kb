@@ -24,7 +24,7 @@ class ListGajis extends ListRecords
             Action::make('downloadAllSlipGaji')
                 ->label('Download Semua Slip')
                 ->icon('heroicon-o-arrow-down-tray')
-                ->color('info')
+                ->color('purple')
                 ->requiresConfirmation() // Tambahkan konfirmasi sebelum proses
                 ->modalHeading('Konfirmasi Download')
                 ->modalDescription('Anda akan mengunduh semua slip gaji yang tampil di tabel dalam format ZIP. Proses ini mungkin memakan waktu beberapa saat tergantung jumlah data.')
