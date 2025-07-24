@@ -119,17 +119,23 @@ class PomigorDepotResource extends Resource
                 TextColumn::make('name')->label('Nama Depot')->searchable()->sortable()->wrap()->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('region.name')->label('Unit Pengelola')->searchable()->sortable(),
                 TextColumn::make('customer.name')->label('Nasabah Pengurus')->searchable()->sortable()->wrap(),
+                TextColumn::make('address')
+                    ->label('Alamat Depot')
+                    ->wrap()
+                    ->limit(100) // Boleh disesuaikan, agar tidak terlalu panjang
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('maps_link')
                     ->label('Maps Link') 
                     ->url(fn ($record) => "https://www.google.com/maps/search/?api=1&query={$record->latitude},{$record->longitude}")
                     ->openUrlInNewTab()
-                    ->getStateUsing(fn ($record) => '🔗 Lihat di Maps')
+                    ->getStateUsing(fn ($record) => '🔗 Link')
                     ->extraAttributes(['class' => 'text-blue-600 hover:text-blue-800'])
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('current_stock_liters')
                     ->label('Stok (Liter)')
                     ->numeric(decimalPlaces: 2, decimalSeparator: ',', thousandsSeparator: '.')
                     ->alignRight()
+                    ->description(fn ($record) => '🔄 ' . optional($record->updated_at)->format('d M Y, H:i'))
                     ->sortable(),
                 TextColumn::make('status')->badge()
                     ->color(fn (string $state): string => match ($state) {
