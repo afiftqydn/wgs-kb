@@ -116,9 +116,16 @@ class PomigorDepotResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('depot_code')->label('Kode Depot')->searchable()->sortable(),
-                TextColumn::make('name')->label('Nama Depot')->searchable()->sortable()->wrap(),
+                TextColumn::make('name')->label('Nama Depot')->searchable()->sortable()->wrap()->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('region.name')->label('Unit Pengelola')->searchable()->sortable(),
                 TextColumn::make('customer.name')->label('Nasabah Pengurus')->searchable()->sortable()->wrap(),
+                TextColumn::make('maps_link')
+                    ->label('Maps Link') 
+                    ->url(fn ($record) => "https://www.google.com/maps/search/?api=1&query={$record->latitude},{$record->longitude}")
+                    ->openUrlInNewTab()
+                    ->getStateUsing(fn ($record) => '🔗 Lihat di Maps')
+                    ->extraAttributes(['class' => 'text-blue-600 hover:text-blue-800'])
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('current_stock_liters')
                     ->label('Stok (Liter)')
                     ->numeric(decimalPlaces: 2, decimalSeparator: ',', thousandsSeparator: '.')
