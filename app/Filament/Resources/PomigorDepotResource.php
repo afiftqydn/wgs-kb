@@ -128,9 +128,9 @@ class PomigorDepotResource extends Resource
                     ->label('Maps Link') 
                     ->url(fn ($record) => "https://www.google.com/maps/search/?api=1&query={$record->latitude},{$record->longitude}")
                     ->openUrlInNewTab()
-                    ->getStateUsing(fn ($record) => '🔗 Link')
-                    ->extraAttributes(['class' => 'text-blue-600 hover:text-blue-800'])
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->getStateUsing(fn ($record) => 'Lihat Lokasi')
+                    ->extraAttributes(['class' => 'text-blue-600 hover:text-blue-800']),
+                    // ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('current_stock_liters')
                     ->label('Stok (Liter)')
                     ->numeric(decimalPlaces: 2, decimalSeparator: ',', thousandsSeparator: '.')
