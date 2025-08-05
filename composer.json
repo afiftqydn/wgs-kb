@@ -11,6 +11,7 @@
         "bezhansalleh/filament-shield": "^3.3",
         "fibtegis/filament-infinite-scroll": "^1.0",
         "filament/filament": "3.3",
+        "hugomyb/filament-media-action": "^3.1",
         "laravel/framework": "^12.0",
         "laravel/sanctum": "^4.1",
         "laravel/tinker": "^2.10.1",

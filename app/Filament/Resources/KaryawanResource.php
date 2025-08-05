@@ -20,6 +20,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Auth;
+use Filament\Forms\Components\ToggleButtons;
 
 // Impor untuk SoftDeletes & Action
 use Filament\Tables\Actions\DeleteAction;
@@ -82,9 +83,27 @@ class KaryawanResource extends Resource
                                     DatePicker::make('tanggal_lahir')
                                         ->prefixIcon('heroicon-o-calendar-days')
                                         ->required(),
-                                    TextInput::make('jenis_kelamin') // Menggunakan TextInput sebagai contoh jika Radio bermasalah, atau sesuaikan
-                                        ->prefixIcon('heroicon-o-user')
-                                        ->required(),
+                                    
+                                    // --- PENYESUAIAN BERDASARKAN SKEMA ENUM ---
+                                    ToggleButtons::make('jenis_kelamin')
+                                        ->label('Jenis Kelamin')
+                                        ->inline()
+                                        ->grouped()
+                                        ->required()
+                                        ->options([
+                                            'Pria' => 'Pria',
+                                            'Wanita' => 'Wanita',
+                                        ])
+                                        ->icons([
+                                            'Pria' => 'heroicon-o-user',
+                                            'Wanita' => 'heroicon-o-user-group',
+                                        ])
+                                        ->colors([
+                                            'Pria' => 'info',
+                                            'Wanita' => 'pink',
+                                        ]),
+                                    // --- AKHIR PENYESUAIAN ---
+
                                     Select::make('agama')
                                         ->prefixIcon('heroicon-o-hand-raised')
                                         ->options(['Islam' => 'Islam', 'Kristen Protestan' => 'Kristen Protestan', 'Kristen Katolik' => 'Kristen Katolik', 'Hindu' => 'Hindu', 'Buddha' => 'Buddha', 'Khonghucu' => 'Khonghucu'])
@@ -221,7 +240,7 @@ class KaryawanResource extends Resource
                 Tables\Columns\ImageColumn::make('pas_foto')->label('Foto')->circular()->size(50),
                 Tables\Columns\TextColumn::make('nama_lengkap')->label('Nama & Jabatan')->description(fn (Karyawan $record): string => $record->jabatan)->searchable(['nama_lengkap', 'jabatan'])->sortable(),
                 Tables\Columns\TextColumn::make('status_karyawan')->label('Status')->badge()->colors(['success' => 'Tetap/PKWTT', 'warning' => 'Kontrak/PKWT', 'info' => 'Magang', 'gray' => 'Harian'])->searchable(),
-                Tables\Columns\TextColumn::make('region.name')->label('Kantor')->badge()->icon('heroicon-o-building-office')->searchable()->sortable(),
+                Tables\Columns\TextColumn::make('region.name')->label('Kantor')->badge()->color('warning')->icon('heroicon-o-building-office')->searchable()->sortable(),
                 Tables\Columns\TextColumn::make('no_hp')->label('No. HP')->icon('heroicon-o-phone')->searchable()->copyable()->copyMessage('No. HP disalin!')->url(fn (Karyawan $record): ?string => $record->no_hp ? "tel:{$record->no_hp}" : null)->toggleable(isToggledHiddenByDefault: false),
                 Tables\Columns\TextColumn::make('created_at')->label('Tanggal Dibuat')->dateTime('d M Y H:i')->sortable()->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('deleted_at')->label('Tanggal Dihapus')->dateTime('d M Y H:i')->sortable()->toggleable(isToggledHiddenByDefault: true),
@@ -258,9 +277,8 @@ class KaryawanResource extends Resource
                     ForceDeleteBulkAction::make(),
                     RestoreBulkAction::make(),
                 ]),
-            ])
-            ->infinite();
-            // ->infinite(perPage: 5);
+            ]);
+            // ->infinite();
     }
 
     public static function getEloquentQuery(): Builder
@@ -321,3 +339,4 @@ class KaryawanResource extends Resource
         return $query;
     }
 }
+ 

@@ -33,6 +33,7 @@ class User extends Authenticatable implements FilamentUser // <-- Implementasika
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed', // Pastikan password di-hash otomatis saat di-set
+        'last_activity_at' => 'datetime',
     ];
 
     // Implementasi method dari FilamentUser
