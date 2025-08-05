@@ -69,6 +69,12 @@ class RegionResource extends Resource
                 //     ])
                 //     ->default('ACTIVE')
                 //     ->required(),
+
+
+                Forms\Components\TextInput::make('maps_url')
+                    ->label('Google Maps Link')
+                    ->url()
+                    ->nullable(),
             ]);
     }
 
@@ -97,6 +103,13 @@ class RegionResource extends Resource
                 Tables\Columns\TextColumn::make('code')
                     ->searchable()
                     ->sortable(),
+
+                Tables\Columns\TextColumn::make('maps_url')
+                    ->label('Maps')
+                    ->formatStateUsing(fn () => 'Lihat Lokasi')
+                    ->url(fn ($record) => $record->maps_url, true)
+                    ->openUrlInNewTab(),
+
                 Tables\Columns\IconColumn::make('status')
                     ->boolean() // Jika status Anda adalah boolean (0/1).
                     // Jika enum 'ACTIVE'/'INACTIVE', gunakan TextColumn dengan format badge:

@@ -3,50 +3,46 @@
 namespace App\Observers;
 
 use App\Models\PomigorStockMovement;
-use App\Models\PomigorDepot; // Import PomigorDepot
+use App\Models\PomigorDepot;
 
 class PomigorStockMovementObserver
 {
-    /**
-     * Handle the PomigorStockMovement "created" event.
-     */
-    public function created(PomigorStockMovement $pomigorStockMovement): void
+    public function created(PomigorStockMovement $movement): void
     {
-        $this->updateDepotStock($pomigorStockMovement->pomigorDepot);
+        self::updateDepotStock($movement->pomigor_depot_id);
     }
 
-    /**
-     * Handle the PomigorStockMovement "updated" event.
-     */
-    public function updated(PomigorStockMovement $pomigorStockMovement): void
+    public function updated(PomigorStockMovement $movement): void
     {
-        // Jika quantity atau tipe transaksi berubah, perlu update stok
-        // Atau selalu update untuk menyederhanakan jika ada perubahan
-        $this->updateDepotStock($pomigorStockMovement->pomigorDepot);
+        self::updateDepotStock($movement->pomigor_depot_id);
     }
 
-    /**
-     * Handle the PomigorStockMovement "deleted" event.
-     */
-    public function deleted(PomigorStockMovement $pomigorStockMovement): void
+    public function deleted(PomigorStockMovement $movement): void
     {
-        $this->updateDepotStock($pomigorStockMovement->pomigorDepot);
+        self::updateDepotStock($movement->pomigor_depot_id);
     }
 
-    /**
-    * Recalculate and update the current stock for the given depot.
-    */
-    protected function updateDepotStock(PomigorDepot $depot): void
+    // Jika soft deletes digunakan
+    public function restored(PomigorStockMovement $movement): void
     {
-        $stockIn = $depot->stockMovements()
-                        ->whereIn('transaction_type', ['REFILL', 'ADJUSTMENT_INCREASE'])
-                        ->sum('quantity_liters');
+        self::updateDepotStock($movement->pomigor_depot_id);
+    }
 
-        $stockOut = $depot->stockMovements()
-                         ->whereIn('transaction_type', ['SALE_REPORTED', 'ADJUSTMENT_DECREASE'])
-                         ->sum('quantity_liters');
+    protected static function updateDepotStock(int $depotId): void
+    {
+        $depot = PomigorDepot::find($depotId);
+        if (! $depot) return;
 
-        $depot->current_stock_liters = $stockIn - $stockOut;
-        $depot->saveQuietly(); // saveQuietly() untuk mencegah trigger event update lagi pada PomigorDepot jika ada observer di sana
+        $stock = PomigorStockMovement::where('pomigor_depot_id', $depotId)
+            ->get()
+            ->sum(function ($movement) {
+                return match ($movement->transaction_type) {
+                    'REFILL', 'ADJUSTMENT_INCREASE' => $movement->quantity_liters,
+                    'SALE_REPORTED', 'ADJUSTMENT_DECREASE' => -$movement->quantity_liters,
+                    default => 0,
+                };
+            });
+
+        $depot->update(['current_stock_liters' => $stock]);
     }
 }

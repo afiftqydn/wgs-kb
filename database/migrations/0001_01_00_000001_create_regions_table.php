@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('code')->unique()->nullable(); // Kolom code (kode unik wilayah, misal untuk kode di referral). Unique dan bisa null jika ada kasus belum ada kode.
             $table->enum('status', ['ACTIVE', 'INACTIVE'])->default('ACTIVE'); // Kolom status (ACTIVE atau INACTIVE)
             $table->timestamps(); // Kolom created_at dan updated_at
+            $table->string('maps_url')->nullable(); // Kolom untuk menyimpan link Google Maps
         });
     }
 
