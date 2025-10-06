@@ -39,11 +39,11 @@ class KaryawanResource extends Resource
 {
     protected static ?string $model = Karyawan::class;
     protected static ?string $navigationIcon = 'heroicon-o-user-group';
-    protected static ?string $navigationGroup = 'Data Master';
+    protected static ?string $navigationGroup = 'Kepegawaian';
     protected static ?string $navigationLabel = 'Data Karyawan';
     protected static ?string $pluralModelLabel = 'Data Karyawan';
     protected static ?string $modelLabel = 'Data Karyawan';
-    protected static ?int $navigationSort = 9;
+    protected static ?int $navigationSort = 10;
 
     public static function form(Form $form): Form
     {

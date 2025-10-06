@@ -2,26 +2,18 @@
 
 namespace App\Filament\Resources;
 
-use Filament\Forms;
-use Filament\Tables;
-use Livewire\Livewire;
-use Filament\Forms\Form;
-use Filament\Tables\Table;
-use App\Models\ProductType;
-use Filament\Resources\Resource;
-use Filament\Tables\Actions\Action;
-use Filament\Forms\Components\Textarea;
-use Filament\Tables\Columns\TextColumn;
-use Illuminate\Support\Facades\Storage;
-use Filament\Forms\Components\TagsInput;
-use Filament\Forms\Components\TextInput;
-use Filament\Tables\Columns\ImageColumn;
-
-// Import Actions dan Infolist Components yang diperlukan
-use Filament\Forms\Components\FileUpload;
-use App\Http\Livewire\ViewPaymentSimulationImage;
 use App\Filament\Resources\ProductTypeResource\Pages;
 use App\Filament\Resources\ProductTypeResource\RelationManagers;
+use App\Models\ProductType;
+use Filament\Forms;
+use Filament\Forms\Form;
+use Filament\Notifications\Notification;
+use Filament\Resources\Resource;
+use Filament\Tables;
+use Filament\Tables\Table;
+use Filament\Tables\Actions\Action;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 class ProductTypeResource extends Resource
 {
@@ -38,34 +30,34 @@ class ProductTypeResource extends Resource
     {
         return $form
             ->schema([
-                TextInput::make('name')
+                Forms\Components\TextInput::make('name')
                     ->required()
                     ->maxLength(255)
                     ->columnSpanFull(),
-                Textarea::make('description')
+                Forms\Components\Textarea::make('description')
                     ->maxLength(65535)
                     ->columnSpanFull(),
-                TextInput::make('min_amount')
+                Forms\Components\TextInput::make('min_amount')
                     ->label('Jumlah Minimal (Rp)')
                     ->numeric()
                     ->prefix('Rp')
                     ->default(0),
-                TextInput::make('max_amount')
+                Forms\Components\TextInput::make('max_amount')
                     ->label('Jumlah Maksimal (Rp)')
                     ->numeric()
                     ->prefix('Rp')
                     ->default(0),
-                TextInput::make('escalation_threshold')
+                Forms\Components\TextInput::make('escalation_threshold')
                     ->label('Ambang Batas Eskalasi (Rp)')
                     ->numeric()
                     ->prefix('Rp')
                     ->nullable(),
-                TagsInput::make('required_documents')
+                Forms\Components\TagsInput::make('required_documents')
                     ->label('Dokumen yang Dibutuhkan')
                     ->helperText('Masukkan nama dokumen satu per satu dan tekan Enter.')
                     ->columnSpanFull(),
-                FileUpload::make('payment_simulation_image')
-                    ->label('Simulasi Pembayaran (JPEG)')
+                Forms\Components\FileUpload::make('payment_simulation_image')
+                    ->label('Simulasi Pembayaran (JPEG/PNG)')
                     ->image()
                     ->acceptedFileTypes(['image/jpeg', 'image/png'])
                     ->directory('product-type-simulations')
@@ -79,16 +71,16 @@ class ProductTypeResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('name')
+                Tables\Columns\TextColumn::make('name')
                     ->searchable()
                     ->sortable(),
-                TextColumn::make('min_amount')
+                Tables\Columns\TextColumn::make('min_amount')
                     ->money('IDR')
                     ->sortable(),
-                TextColumn::make('max_amount')
+                Tables\Columns\TextColumn::make('max_amount')
                     ->money('IDR')
                     ->sortable(),
-                TextColumn::make('created_at')
+                Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -98,8 +90,21 @@ class ProductTypeResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
-                
+                Tables\Actions\DeleteAction::make()
+                    ->before(function (Model $record, Tables\Actions\DeleteAction $action) {
+                        // Cek apakah ada data 'loanApplications' yang terhubung dengan record ini.
+                        if ($record->loanApplications()->exists()) {
+                            // Jika ada, kirim notifikasi error.
+                            Notification::make()
+                                ->danger()
+                                ->title('Gagal Menghapus')
+                                ->body('Jenis produk ini tidak dapat dihapus karena sudah digunakan oleh data Pengajuan Pinjaman.')
+                                ->send();
+                            
+                            // Batalkan aksi penghapusan.
+                            $action->halt();
+                        }
+                    }),
                 Action::make('view_simulation')
                     ->label('Simulasi')
                     ->icon('heroicon-o-eye')
@@ -113,8 +118,8 @@ class ProductTypeResource extends Resource
                         view('livewire.view-payment-simulation-image', [
                             'imageUrl' => Storage::url($record->payment_simulation_image),
                         ])
-                    )
-                ])
+                    ),
+            ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),

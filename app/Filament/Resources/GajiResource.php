@@ -19,9 +19,9 @@ class GajiResource extends Resource
 {
     protected static ?string $model = Gaji::class;
     protected static ?string $navigationIcon = 'heroicon-o-currency-dollar';
-    protected static ?string $navigationGroup = 'Keuangan';
-    protected static ?string $pluralModelLabel = 'Data Gaji Karyawan';
-    protected static ?int $navigationSort = 10;
+    protected static ?string $navigationGroup = 'Kepegawaian';
+    protected static ?string $pluralModelLabel = 'Penggajian';
+    protected static ?int $navigationSort = 11;
 
     public static function form(Form $form): Form
     {
@@ -178,7 +178,7 @@ class GajiResource extends Resource
         return [
             'index' => Pages\ListGajis::route('/'),
             'create' => Pages\CreateGaji::route('/create'),
-            'view' => Pages\ViewGaji::route('/{record}'),
+            // 'view' => Pages\ViewGaji::route('/{record}'),
             'edit' => Pages\EditGaji::route('/{record}/edit'),
         ];
     }

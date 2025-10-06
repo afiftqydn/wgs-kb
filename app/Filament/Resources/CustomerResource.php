@@ -2,8 +2,8 @@
 
 namespace App\Filament\Resources;
 
+use Exception; // Diperlukan untuk menangkap error
 use Filament\Forms;
-// use App\Filament\Resources\CustomerResource\RelationManagers;
 use Filament\Tables;
 use App\Models\Region;
 use App\Models\Customer;
@@ -12,48 +12,50 @@ use Filament\Tables\Table;
 use Filament\Resources\Resource;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Builder;
-use App\Models\Referrer; // Import Referrer model
+use App\Models\Referrer;
 use App\Filament\Resources\CustomerResource\Pages;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use App\Models\User;    // Import User model (untuk created_by)
-use Filament\Forms\Set; // Untuk mengisi field lain secara otomatis
+use App\Models\User;
+use Filament\Forms\Set;
+use Filament\Notifications\Notification; // Diperlukan untuk menampilkan notifikasi
 
 class CustomerResource extends Resource
 {
     protected static ?string $model = Customer::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-identification';
-    protected static ?string $navigationGroup = 'Manajemen Pengajuan'; // Grup baru atau yang sesuai
+    protected static ?string $navigationGroup = 'Manajemen Pengajuan';
     protected static ?string $navigationLabel = 'Data Nasabah';
+    protected static ?string $modelLabel = 'Data Nasabah';
     protected static ?int $navigationSort = 2;
 
     public static function form(Form $form): Form
     {
         return $form
-            ->schema(self::getCreationFormSchema()); // Panggil method baru di sini
+            ->schema(self::getCreationFormSchema());
     }
-    // TAMBAHKAN METHOD BARU INI:
+
     public static function getCreationFormSchema(): array
     {
         return [
             Forms\Components\Section::make('Informasi Pribadi Nasabah')
                 ->schema([
+                    
+                    Forms\Components\TextInput::make('name')
+                        ->label('Nama Lengkap Nasabah')
+                        ->required()
+                        ->maxLength(255),
                     Forms\Components\TextInput::make('nik')
                         ->label('NIK')
                         ->maxLength(255)
                         ->unique(Customer::class, 'nik', ignoreRecord: true)
                         ->nullable(),
-                    Forms\Components\TextInput::make('name')
-                        ->label('Nama Lengkap Nasabah')
-                        ->required()
-                        ->maxLength(255),
                     Forms\Components\TextInput::make('phone')
-                        ->label('Nomor Telepon')
+                        ->label('Nomor HP')
                         ->tel()
                         ->maxLength(255)
                         ->nullable(),
                     Forms\Components\TextInput::make('email')
-                        ->label('Alamat Email')
+                        ->label('Email')
                         ->email()
                         ->maxLength(255)
                         ->unique(Customer::class, 'email', ignoreRecord: true)
@@ -70,10 +72,8 @@ class CustomerResource extends Resource
                             modifyQueryUsing: function (Builder $query) {
                                 $user = Auth::user();
 
-                                // Jika bukan peran global, terapkan filter
                                 if (!$user->hasRole(['Tim IT', 'Kepala Cabang', 'Admin Cabang'])) {
                                     
-                                    // Jika peran level UNIT, mereka bisa memilih Unitnya atau SubUnit di bawahnya
                                     if ($user->hasAnyRole(['Kepala Unit', 'Admin Unit'])) {
                                         if ($user->region_id) {
                                             $childSubUnitIds = Region::where('parent_id', $user->region_id)->pluck('id');
@@ -83,7 +83,6 @@ class CustomerResource extends Resource
                                             $query->whereRaw('1 = 0');
                                         }
                                     } 
-                                    // Jika peran level SUBUNIT, mereka HANYA bisa memilih SubUnitnya sendiri
                                     elseif ($user->hasAnyRole(['Kepala SubUnit', 'Admin SubUnit'])) {
                                         if ($user->region_id) {
                                             $query->where('id', $user->region_id);
@@ -92,36 +91,29 @@ class CustomerResource extends Resource
                                         }
                                     } 
                                     else {
-                                        $query->whereRaw('1 = 0'); // Peran lain tidak bisa memilih
+                                        $query->whereRaw('1 = 0');
                                     }
                                 }
-                                // Untuk peran global, tidak ada filter, semua wilayah ditampilkan
                             }
                         )
-                        // --- TAMBAHKAN KODE INI UNTUK MEMPERBAIKI MASALAH ---
                         ->default(function () {
                             $user = Auth::user();
-                            // Jika pengguna adalah SubUnit, otomatis set nilainya ke region_id mereka
                             if ($user->hasAnyRole(['Kepala SubUnit', 'Admin SubUnit'])) {
                                 return $user->region_id;
                             }
                             return null;
                         })
                         ->disabled(function () {
-                            // Kunci (disable) field ini jika pengguna adalah SubUnit
                             return Auth::user()->hasAnyRole(['Kepala SubUnit', 'Admin SubUnit']);
                         })
-                        // ----------------------------------------------------
                         ->searchable()
                         ->preload()
                         ->required(),
-
                 ])->columns(2),
 
             Forms\Components\Section::make('Informasi Referral (Jika Ada)')
                 ->schema([
                     Forms\Components\Select::make('referrer_id')
-                        // ... (konfigurasi referrer_id seperti sebelumnya)
                         ->relationship('referrer', 'name')
                         ->searchable()
                         ->preload()
@@ -138,12 +130,11 @@ class CustomerResource extends Resource
                         })
                         ->nullable(),
                     Forms\Components\TextInput::make('referral_code_used')
-                        // ... (konfigurasi referral_code_used seperti sebelumnya)
                         ->nullable(),
                 ])->columns(2),
-            // Kolom created_by tidak perlu ada di form ini karena diisi otomatis oleh model event
         ];
     }
+
     public static function table(Table $table): Table
     {
         return $table
@@ -189,12 +180,81 @@ class CustomerResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\ViewAction::make(), // Tambahkan ViewAction
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\ViewAction::make(),
+                
+                // =========================================================
+                // AWAL PERBAIKAN: Modifikasi DeleteAction
+                // =========================================================
+                Tables\Actions\DeleteAction::make()
+                    ->action(function ($record) {
+                        try {
+                            // Coba hapus data
+                            $record->delete();
+                            // Jika berhasil, kirim notifikasi sukses
+                            Notification::make()
+                                ->success()
+                                ->title('Data Nasabah Dihapus')
+                                ->body('Data nasabah berhasil dihapus.')
+                                ->send();
+                        } catch (Exception $e) {
+                            // Jika gagal (karena Exception dari Model), kirim notifikasi error
+                            Notification::make()
+                                ->danger()
+                                ->title('Gagal Menghapus Data')
+                                ->body($e->getMessage()) // Tampilkan pesan error dari Model
+                                ->send();
+                        }
+                    }),
+                // =========================================================
+                // AKHIR PERBAIKAN
+                // =========================================================
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    // =========================================================
+                    // AWAL PERBAIKAN: Modifikasi DeleteBulkAction
+                    // =========================================================
+                    Tables\Actions\DeleteBulkAction::make()
+                        ->action(function ($records) {
+                            $successCount = 0;
+                            $failedCount = 0;
+                            $errorMessage = '';
+
+                            foreach ($records as $record) {
+                                try {
+                                    $record->delete();
+                                    $successCount++;
+                                } catch (Exception $e) {
+                                    $failedCount++;
+                                    // Simpan pesan error pertama sebagai contoh
+                                    if (empty($errorMessage)) {
+                                        $errorMessage = $e->getMessage();
+                                    }
+                                }
+                            }
+                            
+                            // Kirim notifikasi jika ada yang berhasil dihapus
+                            if ($successCount > 0) {
+                                Notification::make()
+                                    ->success()
+                                    ->title('Proses Selesai')
+                                    ->body("Berhasil menghapus {$successCount} data nasabah.")
+                                    ->send();
+                            }
+
+                            // Kirim notifikasi jika ada yang gagal dihapus
+                            if ($failedCount > 0) {
+                                Notification::make()
+                                    ->danger()
+                                    ->title('Sebagian Data Gagal Dihapus')
+                                    ->body("{$failedCount} data gagal dihapus karena memiliki data terkait. Contoh error: " . $errorMessage)
+                                    ->persistent() // Agar notifikasi tidak mudah hilang
+                                    ->send();
+                            }
+                        }),
+                    // =========================================================
+                    // AKHIR PERBAIKAN
+                    // =========================================================
                 ]),
             ]);
     }
@@ -203,41 +263,29 @@ class CustomerResource extends Resource
     {
         $user = Auth::user();
 
-        // 1. Jika pengguna adalah peran global (Cabang atau Tim IT), tampilkan semua nasabah.
         if ($user->hasRole(['Tim IT', 'Kepala Cabang', 'Analis Cabang', 'Admin Cabang'])) {
-            // Kembalikan query asli dengan eager loading
             return parent::getEloquentQuery()->with(['region', 'creator', 'referrer']);
         }
 
-        // 2. Jika pengguna berada di level UNIT (Kepala Unit, Analis Unit, Admin Unit)
         if ($user->hasAnyRole(['Kepala Unit', 'Analis Unit', 'Admin Unit'])) {
             if ($user->region_id) {
-                // Ambil ID dari semua SubUnit yang berada di bawah Unit pengguna ini
                 $childSubUnitIds = Region::where('parent_id', $user->region_id)->pluck('id');
-                
-                // Gabungkan ID Unit pengguna dengan ID semua SubUnit di bawahnya
                 $accessibleRegionIds = $childSubUnitIds->push($user->region_id);
-
-                // Tampilkan nasabah yang region_id (domisilinya) ada di dalam daftar wilayah yang bisa diakses
                 return parent::getEloquentQuery()
                     ->whereIn('region_id', $accessibleRegionIds)
                     ->with(['region', 'creator', 'referrer']);
             }
         }
 
-        // 3. Jika pengguna berada di level SUBUNIT (Kepala SubUnit, Admin SubUnit)
         if ($user->hasAnyRole(['Kepala SubUnit', 'Admin SubUnit'])) {
             if ($user->region_id) {
-                // Hanya tampilkan nasabah yang region_id (domisilinya) sama dengan region_id pengguna
                 return parent::getEloquentQuery()
                     ->where('region_id', $user->region_id)
                     ->with(['region', 'creator', 'referrer']);
             }
         }
         
-        // 4. Untuk peran lain (seperti Manager Keuangan yang tidak terkait wilayah), 
-        // jangan tampilkan data nasabah apa pun secara default.
-        return parent::getEloquentQuery()->whereRaw('1 = 0'); // Query yang selalu mengembalikan hasil kosong
+        return parent::getEloquentQuery()->whereRaw('1 = 0');
     }
 
     public static function mutateFormDataBeforeCreate(array $data): array
@@ -247,7 +295,8 @@ class CustomerResource extends Resource
         }
 
         return $data;
-    }    // getRelations() dan getPages() bisa dibiarkan default atau disesuaikan jika perlu
+    }
+
     public static function getRelations(): array
     {
         return [
@@ -260,7 +309,7 @@ class CustomerResource extends Resource
         return [
             'index' => Pages\ListCustomers::route('/'),
             'create' => Pages\CreateCustomer::route('/create'),
-            // 'view' => Pages\ViewCustomer::route('/{record}'), // Aktifkan jika ada halaman view
+            // 'view' => Pages\ViewCustomer::route('/{record}'),
             'edit' => Pages\EditCustomer::route('/{record}/edit'),
         ];
     }

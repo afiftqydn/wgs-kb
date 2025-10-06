@@ -25,11 +25,13 @@ class LoanApplication extends Model
         'customer_id',
         'product_type_id',
         'amount_requested',
-        'referrer_id', // Pastikan ini ada di $fillable
+        'referrer_id',
         'purpose',
+        'customer_business_type', // BARU
         'input_region_id',
         'processing_region_id',
         'status',
+        'payment_status', // BARU
         'created_by',
         'assigned_to',
         'admin_unit_verified_at',
@@ -59,10 +61,12 @@ class LoanApplication extends Model
             ->logOnly([
                 'application_number',
                 'status',
+                'payment_status', // BARU
                 'assigned_to',
                 'amount_requested',
                 'customer_id',
                 'product_type_id',
+                'customer_business_type', // BARU
             ])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs()
@@ -157,8 +161,8 @@ class LoanApplication extends Model
             if ($application->wasChanged('assigned_to') && !is_null($application->assigned_to)) {
                 $newAssignee = User::find($application->assigned_to);
                 if ($newAssignee) {
-                     $assigner = Auth::user() ?? User::find($application->getOriginal('assigned_to')) ?? $application->creator;
-                     $newAssignee->notify(new ApplicationAssignedNotification($application, $assigner));
+                       $assigner = Auth::user() ?? User::find($application->getOriginal('assigned_to')) ?? $application->creator;
+                       $newAssignee->notify(new ApplicationAssignedNotification($application, $assigner));
                 }
             }
         });
@@ -171,12 +175,12 @@ class LoanApplication extends Model
             $processingUnit = Region::find($application->processing_region_id);
             if ($processingUnit && $processingUnit->type === 'UNIT') {
                 $adminUnitUser = User::where('region_id', $processingUnit->id)
-                                     ->whereHas('roles', fn ($query) => $query->where('name', 'Admin Unit'))->first();
+                                        ->whereHas('roles', fn ($query) => $query->where('name', 'Admin Unit'))->first();
                 if ($adminUnitUser) {
                     $application->assigned_to = $adminUnitUser->id;
                 } else {
                     $kepalaUnitUser = User::where('region_id', $processingUnit->id)
-                                         ->whereHas('roles', fn ($query) => $query->where('name', 'Kepala Unit'))->first();
+                                          ->whereHas('roles', fn ($query) => $query->where('name', 'Kepala Unit'))->first();
                     if ($kepalaUnitUser) $application->assigned_to = $kepalaUnitUser->id;
                 }
             }

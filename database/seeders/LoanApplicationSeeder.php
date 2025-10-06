@@ -47,8 +47,10 @@ class LoanApplicationSeeder extends Seeder
                     'product_type_id' => $productKUR->id,
                     'amount_requested' => 25000000.00,
                     'purpose' => 'Pengembangan usaha laundry di Kubu Raya',
+                    'customer_business_type' => 'Jasa Laundry', // BARU
                     'input_region_id' => $creatorKubuRaya->region_id,
                     'status' => 'SUBMITTED',
+                    'payment_status' => 'Belum Transfer', // BARU
                     'created_by' => $creatorKubuRaya->id,
                 ]
             );
@@ -63,8 +65,10 @@ class LoanApplicationSeeder extends Seeder
                 'referrer_id' => null,
                 'amount_requested' => 200000000.00,
                 'purpose' => 'Pengajuan KPR untuk komisi unit.',
+                'customer_business_type' => 'Properti', // BARU
                 'input_region_id' => $unitPontianak->id,
                 'status' => 'APPROVED',
+                'payment_status' => 'Sudah Transfer', // BARU
                 'created_by' => $adminUnitPnk->id,
                 'created_at' => Carbon::now()->startOfMonth()->addDays(5),
             ]
@@ -80,8 +84,10 @@ class LoanApplicationSeeder extends Seeder
                     'referrer_id' => $referralBudi->id,
                     'amount_requested' => 300000000.00,
                     'purpose' => 'Pengajuan KPR dengan fee untuk referral.',
+                    'customer_business_type' => 'Investasi', // BARU
                     'input_region_id' => $unitPontianak->id,
                     'status' => 'APPROVED',
+                    'payment_status' => 'Sudah Transfer', // BARU
                     'created_by' => $adminUnitPnk->id,
                     'created_at' => Carbon::now()->startOfMonth()->addDays(10),
                 ]
@@ -97,8 +103,10 @@ class LoanApplicationSeeder extends Seeder
                 'referrer_id' => null,
                 'amount_requested' => 150000000.00,
                 'purpose' => 'Pengajuan KPR bulan lalu.',
+                'customer_business_type' => 'Renovasi Rumah', // BARU
                 'input_region_id' => $unitPontianak->id,
                 'status' => 'APPROVED',
+                'payment_status' => 'Sudah Transfer', // BARU
                 'created_by' => $adminUnitPnk->id,
                 'created_at' => Carbon::now()->subMonth()->startOfMonth()->addDays(3),
             ]
@@ -114,15 +122,18 @@ class LoanApplicationSeeder extends Seeder
         $users = User::all();
         $regions = Region::whereNotNull('parent_id')->get();
         $statuses = ['DRAFT', 'SUBMITTED', 'UNDER_REVIEW', 'APPROVED', 'REJECTED'];
+        $businessTypes = ['Perdagangan Eceran', 'Kuliner', 'Pertanian', 'Jasa Konsultasi', 'Transportasi']; // BARU
+        $paymentStatuses = ['Sudah Transfer', 'Belum Transfer']; // BARU
 
         if ($customers->isEmpty() || $productTypes->isEmpty() || $users->isEmpty() || $regions->isEmpty()) {
             $this->command->warn('Data master tidak lengkap. Data acak tidak dibuat.');
         } else {
-            for ($i = 0; $i < 50; $i++) {
+            for ($i = 0; $i < 5; $i++) {
                 $productType = $productTypes->random();
                 $creator = $users->random();
                 $region = $regions->random();
                 $status = (rand(1, 10) > 4) ? 'APPROVED' : $statuses[array_rand($statuses)];
+                $paymentStatus = ($status === 'APPROVED') ? $paymentStatuses[array_rand($paymentStatuses)] : 'Belum Transfer'; // BARU
 
                 LoanApplication::create([
                     'customer_id' => $customers->random()->id,
@@ -132,7 +143,9 @@ class LoanApplicationSeeder extends Seeder
                     'input_region_id' => $region->id,
                     'amount_requested' => rand(max(1000000, $productType->min_amount), min(500000000, $productType->max_amount)),
                     'purpose' => 'Kebutuhan konsumtif (data acak)',
+                    'customer_business_type' => $businessTypes[array_rand($businessTypes)], // BARU
                     'status' => $status,
+                    'payment_status' => $paymentStatus, // BARU
                     'created_at' => Carbon::now()->subDays(rand(0, 365)),
                     'updated_at' => Carbon::now()->subDays(rand(0, 365)),
                 ]);

@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('application_number')->unique(); // Nomor unik permohonan, bisa digenerate otomatis nantinya
 
             $table->foreignId('customer_id')->constrained('customers')->onDelete('cascade'); // Relasi ke nasabah. Jika nasabah dihapus, permohonannya ikut terhapus.
-            $table->foreignId('product_type_id')->constrained('product_types')->onDelete('restrict'); // Relasi ke jenis produk. Restrict delete jika produk masih digunakan.
+            $table->foreignId('product_type_id')->constrained('product_types')->onDelete('cascade'); // Relasi ke jenis produk. Restrict delete jika produk masih digunakan.
 
             $table->decimal('amount_requested', 15, 2); // Jumlah yang diajukan
             $table->text('purpose')->nullable(); // Tujuan pembiayaan

@@ -10,11 +10,6 @@ class ProductType extends Model
 {
     use HasFactory;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
     protected $fillable = [
         'name',
         'description',
@@ -22,14 +17,9 @@ class ProductType extends Model
         'max_amount',
         'required_documents',
         'escalation_threshold',
-        'payment_simulation_image', // Tambahkan ini
+        'payment_simulation_image',
     ];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
     protected $casts = [
         'min_amount' => 'decimal:2',
         'max_amount' => 'decimal:2',
@@ -37,12 +27,18 @@ class ProductType extends Model
         'escalation_threshold' => 'decimal:2',
     ];
 
-    /**
-     * Mendefinisikan relasi bahwa satu ProductType memiliki banyak ProductTypeRule.
-     * Ini adalah method yang hilang.
-     */
     public function productTypeRules(): HasMany
     {
         return $this->hasMany(ProductTypeRule::class);
+    }
+
+    /**
+     * [DITAMBAHKAN] Relasi ke LoanApplication.
+     * Baris ini penting agar model ProductType bisa mengecek data LoanApplication yang terkait.
+     * Pastikan namespace \App\Models\LoanApplication::class sudah benar.
+     */
+    public function loanApplications(): HasMany
+    {
+        return $this->hasMany(\App\Models\LoanApplication::class);
     }
 }
