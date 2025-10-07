@@ -14,7 +14,7 @@ class MigrasiDataResource extends Resource
 {
     protected static ?string $model = MigrasiData::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-users';
+    protected static ?string $navigationIcon = 'heroicon-o-arrow-down-on-square-stack';
     protected static ?string $navigationGroup = 'Data Master';
     protected static ?string $navigationLabel = 'Data Migrasi';
     protected static ?string $modelLabel = 'Data Migrasi';

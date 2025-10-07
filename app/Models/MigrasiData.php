@@ -40,4 +40,16 @@ class MigrasiData extends Model
         'simpok',
         'simwajib',
     ];
+
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'tanggal_lahir' => 'date',
+        'tanggal_register' => 'date',
+        'simpok' => 'decimal:0',
+        'simwajib' => 'decimal:0',
+    ];
 }
