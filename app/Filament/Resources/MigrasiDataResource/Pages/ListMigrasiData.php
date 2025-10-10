@@ -6,9 +6,11 @@ use App\Filament\Resources\MigrasiDataResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
 use App\Imports\MigrasiDataImport;
+use App\Exports\MigrasiDataExport; // <-- TAMBAH INI
 use Filament\Forms\Components\FileUpload;
 use Maatwebsite\Excel\Facades\Excel;
 use Filament\Notifications\Notification;
+use Illuminate\Support\Facades\Storage;
 
 class ListMigrasiData extends ListRecords
 {
@@ -17,30 +19,63 @@ class ListMigrasiData extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            // Baris di bawah ini yang diubah
             Actions\CreateAction::make()
                 ->label('Input Data')
-                ->icon('heroicon-s-plus-circle')
-                ->color('success'),
+                ->icon('heroicon-o-plus-circle')
+                ->color('success'),  
+            // Import Action  
             Actions\Action::make('import')
                 ->label('Impor Excel')
-                ->icon('heroicon-o-arrow-up-tray')
-                ->color('amber') // Anda mengubah warnanya menjadi amber, saya biarkan
+                ->icon('heroicon-o-arrow-up-on-square')
+                ->color('blue')
                 ->form([
                     FileUpload::make('attachment')
                         ->label('Pilih File Excel')
                         ->required()
                         ->disk('local')
-                        ->acceptedFileTypes(['application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'])
+                        ->directory('imports')
+                        ->acceptedFileTypes([
+                            'application/vnd.ms-excel',
+                            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                        ])
+                        ->maxSize(10240) // 10MB
                 ])
                 ->action(function (array $data) {
                     try {
                         Excel::import(new MigrasiDataImport, $data['attachment']);
-                        Notification::make()->title('Impor Berhasil')->success()->send();
+                        Notification::make()
+                            ->title('Impor Berhasil')
+                            ->body('Data nasabah berhasil diimpor ke sistem.')
+                            ->success()
+                            ->send();
                     } catch (\Exception $e) {
-                        Notification::make()->title('Impor Gagal')->body($e->getMessage())->danger()->send();
+                        Notification::make()
+                            ->title('Impor Gagal')
+                            ->body($e->getMessage())
+                            ->danger()
+                            ->send();
                     }
-                }),
+                })
+                ->tooltip('Upload data dari file Excel'),
+                 // Export Action
+            Actions\Action::make('export')
+                ->label('Ekspor Excel')
+                ->icon('heroicon-o-folder-arrow-down')
+                ->color('gray')
+                ->action(function () {
+                    $fileName = 'data-nasabah-' . date('Y-m-d-H-i-s') . '.xlsx';
+                    
+                    try {
+                        return Excel::download(new MigrasiDataExport, $fileName);
+                    } catch (\Exception $e) {
+                        Notification::make()
+                            ->title('Ekspor Gagal')
+                            ->body('Terjadi kesalahan saat mengekspor data: ' . $e->getMessage())
+                            ->danger()
+                            ->send();
+                    }
+                })
+                ->tooltip('Download data dalam format Excel'),
         ];
     }
 }
